@@ -4,14 +4,14 @@ const express = require('express');
 
 module.exports = routeHandler;
 
-function routeHandler(app /* app, auth */) {
+function routeHandler(app, auth) {
   const router = express.Router();
 
   router
     .get('/', getRoot)
     ;
 
-  app.use('/', router);
+  app.use('/', auth.loginRequired, router);
 }
 
 function getRoot(req, res) {
