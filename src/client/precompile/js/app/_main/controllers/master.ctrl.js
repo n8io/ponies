@@ -15,6 +15,7 @@
     socketIoService.on('wager', onWagerReceived);
 
     function onWagerReceived(wager) {
+      console.log(wager); // eslint-disable-line
       upsertWager(wager);
     }
 
