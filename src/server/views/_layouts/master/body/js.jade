@@ -1,0 +1,20 @@
+script(src='//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js', id='js-jquery')
+script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js', id='js-angular')
+script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-resource.min.js', id='js-angular')
+script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-route.min.js', id='js-angular-route')
+script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-animate.min.js', id='js-angular-animate')
+script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-aria.min.js', id='js-angular-aria')
+script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular-messages.min.js', id='js-angular-messages')
+script(src='//ajax.googleapis.com/ajax/libs/angular_material/1.0.0/angular-material.min.js', id='js-angular-material')
+script(src='//cdnjs.cloudflare.com/ajax/libs/ngStorage/0.3.6/ngStorage.min.js', id='js-ngStorage')
+script(src='//cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/md5.js', id='js-crypto')
+script(src='//cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.4/socket.io.min.js', id='js-socket-io')
+script(src='//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js', id='js-lodash')
+
+script(src='/js/script.min.js', id='js-custom')
+
+//- Add livereload to help in local development only
+if !!!((process.env.NODE_ENV || 'local').toLowerCase().indexOf('local'))
+  script(src='//127.0.0.1:35729/livereload.js', async, data-id='js-livereload')
+
+block body-js

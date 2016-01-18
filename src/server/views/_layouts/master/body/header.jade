@@ -1,0 +1,12 @@
+md-toolbar(layout='row')
+  .md-toolbar-tools
+    .title
+      a(href='/')
+        span.hide-xs #{title}
+    span(flex)
+    - if (!user)
+      md-button(href='/admin', aria-label='Log In') Log In
+    - else
+      md-button(href='/admin', aria-label='Admin') Admin
+      md-button(href='/logout', aria-label='Log Out') Log Out
+

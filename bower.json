@@ -1,0 +1,30 @@
+{
+  "name": "ponies",
+  "description": "A survey question app",
+  "main": "src/server/app.js",
+  "authors": [
+    "Nate Clark <n8@n8io.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "SumoMe",
+    "survey",
+    "NodeJs",
+    "ExpressJs"
+  ],
+  "moduleType": [
+    "amd"
+  ],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "src/client/statics/bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap-material-design": "~0.5.7"
+  }
+}
