@@ -5,11 +5,12 @@ append body-content
     md-grid-tile(data-ng-repeat='track in mc.tracks', md-rowspan='1', md-colspan='1', md-colspan-sm='1')
       md-grid-tile-header
         h3 {{track.name}}
-      md-content
-        md-list(data-ng-repeat='race in track.races', layout='column', flex='100', style='width:100%;')
-          md-subheader Race {{race.id}}
-          md-list-item(data-ng-repeat='wager in race.wagers').md-2-line
-            gravatar(email='wager.email').md-avatar
-            md-list-item-text
-              h3 {{wager.amountDisplay}} {{wager.type}}
-              p {{wager.selections}}
+      md-grid-tile-content
+        md-list(layout='column', flex='100')
+          div(flex='100', data-ng-repeat='race in track.races')
+            md-subheader Race {{race.id}}
+            md-list-item(data-ng-repeat='wager in race.wagers').md-2-line
+              gravatar(email='wager.email').md-avatar
+              md-list-item-text
+                h3 {{wager.amountDisplay}} {{wager.type}}
+                p {{wager.selections}}
