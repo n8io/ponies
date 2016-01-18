@@ -8,7 +8,7 @@ append body-content
       md-grid-tile-content(flex)
         md-list(layout='row', flex='100')
           div(flex='100', data-ng-repeat='race in track.races')
-            md-subheader Race {{race.id}}
+            md-subheader(md-no-sticky) Race {{race.id}}
             md-list-item(data-ng-repeat='wager in race.wagers').md-2-line
               gravatar(email='wager.email').md-avatar
               md-list-item-text
