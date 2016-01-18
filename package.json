@@ -28,7 +28,7 @@
     "gulp": "gulp",
     "lint": "gulp lint",
     "postinstall": "gulp && npm run build:nvm",
-    "start": "env | grep STORMPATH && node src/server/app.js",
+    "start": "node $npm_package_main",
     "test": "gulp test"
   },
   "config": {
