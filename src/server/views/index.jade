@@ -6,7 +6,7 @@ append body-content
       md-grid-tile-header
         h3 {{track.name}}
       md-content
-        md-list(data-ng-repeat='race in track.races', layout='column', layout-align='top center')
+        md-list(data-ng-repeat='race in track.races', layout='column', flex='100', style='width:100%;')
           md-subheader Race {{race.id}}
           md-list-item(data-ng-repeat='wager in race.wagers').md-2-line
             gravatar(email='wager.email').md-avatar
