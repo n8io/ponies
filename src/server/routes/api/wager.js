@@ -25,7 +25,7 @@ function routeHandler(app /* , auth */) {
 
     app.io.emit('wager', wager);
 
-    return res.jsonp(wager);
+    return res.json(wager);
   }
 
   function parseWager(obj) {
