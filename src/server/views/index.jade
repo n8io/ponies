@@ -3,9 +3,9 @@ extends _layouts/master/_
 append body-content
   md-grid-list(md-cols-xs='1', md-cols-sm='2', md-cols-md='3', md-cols-gt-md='4', md-row-height-gt-md='1:1' md-row-height='2:2', md-gutter='12px', md-gutter-gt-sm='8px')
     md-grid-tile(data-ng-repeat='track in mc.tracks', md-rowspan='1', md-colspan='1', md-colspan-sm='1')
-      md-grid-tile-header
+      md-grid-tile-header(flex)
         h3 {{track.name}}
-      md-grid-tile-content
+      md-content(flex)
         md-list(layout='column', flex='100')
           div(flex='100', data-ng-repeat='race in track.races')
             md-subheader Race {{race.id}}
