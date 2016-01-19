@@ -22,5 +22,7 @@
     "tests"
   ],
   "dependencies": {
+    "pubnub": "~3.7.18",
+    "pubnub-angular": "~1.1.0"
   }
 }

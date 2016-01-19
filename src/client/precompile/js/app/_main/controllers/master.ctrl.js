@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function masterController($rootScope, EnumService, socketIoService, Pubnub) {
+  function masterController($timeout, $rootScope, EnumService, socketIoService, PubNub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
@@ -35,6 +35,8 @@
       if (!foundTrack) {
         foundTrack = getNewTrackFromWager(wager);
         vm.tracks.push(foundTrack);
+
+        return;
       }
 
       foundRace = (foundTrack.races || []).find(function(r) {
@@ -42,7 +44,9 @@
       });
 
       if (!foundRace) {
-        foundTrack.races = [getNewRaceFromWager(wager)];
+        foundTrack.races.push(getNewRaceFromWager(wager));
+
+        return;
       }
 
       foundWager = (foundRace.wagers || []).find(function(w) {
@@ -51,6 +55,8 @@
 
       if (!foundWager) {
         foundRace.wagers.push(getNewWagerFromWager(wager));
+
+        return;
       }
 
       vm.tracks = vm.tracks.map(function(t) {
@@ -91,31 +97,33 @@
     }
 
     function init() {
-      const pubnubInstanceName = EnumService.PUBNUB.INSTANCE;
       const pubnubChannelName = EnumService.PUBNUB.CHANNELS.WAGER;
-      const messageEventName = Pubnub.getInstance(pubnubInstanceName).getMessageEventNameFor(pubnubChannelName);
-      const presenceEventName = Pubnub.getInstance(pubnubInstanceName).getPresenceEventNameFor(pubnubChannelName);
+      const messageEventName = PubNub.ngMsgEv(pubnubChannelName);
+      const presenceEventName = PubNub.ngPrsEv(pubnubChannelName);
 
       $rootScope.$on(messageEventName, onMessageEvent); // eslint-disable-line
       $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
 
-      Pubnub.getInstance(pubnubInstanceName).init({
+      PubNub.init({
         'subscribe_key': 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe'
       });
 
-      Pubnub.getInstance(pubnubInstanceName).subscribe({
+      PubNub.ngSubscribe({
         channel: pubnubChannelName,
-        message: 'New message?',
         triggerEvents: ['callback', 'presence']
       });
 
-      function onMessageEvent(ngEvent, wager /* , envelope, channel*/) {
-        upsertWager(wager);
+      function onMessageEvent(ngEvent, message /* , envelope, channel*/) {
+        $timeout(function() {
+          upsertWager(message.message);
+        });
       }
 
       function onPresenceEvent(ngEvent, presenceEvent /* , envelope, channel*/) {
-        // apply presence event (join|leave) on users list
-        handlePresenceEvent(presenceEvent);
+        $timeout(function() {
+          // apply presence event (join|leave) on users list
+          handlePresenceEvent(presenceEvent);
+        });
       }
     }
 

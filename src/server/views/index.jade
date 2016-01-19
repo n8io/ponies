@@ -2,7 +2,7 @@ extends _layouts/master/_
 
 append body-content
   md-content
-    table.md-table(flex='100')
+    table.width-100pct
       thead
         tr
           th
@@ -12,15 +12,21 @@ append body-content
       tbody
         tr(data-ng-repeat='track in mc.tracks')
           td(colspan='4')
-            table.md-table(flex='100')
+            table.width-100pct.track
               tbody
                 tr
-                  td {{track.name}}
+                  td.track
+                    span {{track.name}}
                 tr(data-ng-repeat='race in track.races')
                   td
-                    table.md-table(flex='100')
+                    table.width-100pct
                       tbody
                         tr
-                          td Race {{race.id}}
+                          td.race
+                            span Race {{race.id}}
                         tr(data-ng-repeat='wager in race.wagers')
-                          td {{'#' + wager.id}} - {{wager.displayAmount}} {{wager.type}} - {{wager.selections}}
+                          td.wager
+                            gravatar(email='wager.email', size='20', round).valign-mid
+                            span.lh-20 &nbsp;{{'#' + wager.id}} - {{wager.displayAmount}} {{wager.type}} - {{wager.selections}}
+
+    pre.code {{mc.tracks | json}}
