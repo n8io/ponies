@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function masterController($timeout, $rootScope, EnumService, socketIoService, PubNub) {
+  function masterController($timeout, $location, $rootScope, EnumService, socketIoService, PubNub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
@@ -105,7 +105,8 @@
       $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
 
       PubNub.init({
-        'subscribe_key': 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe'
+        'subscribe_key': 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe',
+        ssl: $location.protocol().indexOf('s') > -1
       });
 
       PubNub.ngSubscribe({
