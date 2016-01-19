@@ -96,7 +96,7 @@
         id: wager.id,
         email: wager.email,
         amount: parseFloat(wager.amount, 10),
-        amountDisplay: wager.amountDisplay,
+        amountDisplay: wager.displayAmt,
         type: wager.type,
         selections: wager.selections,
         horses: wager.horses

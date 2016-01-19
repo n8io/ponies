@@ -32,6 +32,10 @@ append body-content
                         tr(data-ng-repeat='wager in race.wagers | orderBy:timestamp:true')
                           td.wager
                             gravatar(email='wager.email', size='20', round).valign-mid
-                            span.lh-20 &nbsp;{{wager.displayAmt}} {{wager.type}} - {{wager.selections}}
-                            .float-right.text-muted {{'#' + wager.id}}
-    pre.code {{mc.tracks | json}}
+                            span.lh-20 &nbsp; {{wager.type}} - {{wager.selections}}&nbsp;
+                            span.text-muted {{wager.amountDisplay}}
+                            .float-right.text-muted
+                              span {{wager.timestamp | date:'mediumTime'}}
+                              span &nbsp;{{'#' + wager.id}}
+    - if (process.env.NODE_ENV == 'local')
+      pre.code {{mc.tracks | json}}
