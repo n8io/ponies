@@ -27,7 +27,7 @@
     "docker:up": "docker-compose scale web=1 haproxy=1 mysql=1",
     "gulp": "gulp",
     "lint": "gulp lint",
-    "postinstall": "gulp",
+    "postinstall": "bower install && gulp",
     "start": "node $npm_package_main",
     "test": "gulp test"
   },
