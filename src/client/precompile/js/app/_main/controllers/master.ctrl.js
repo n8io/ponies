@@ -43,6 +43,8 @@
         return r.id.toString() === wager.race.toString();
       });
 
+      foundTrack.timestamp = wager.timestamp;
+
       if (!foundRace) {
         foundTrack.races.push(getNewRaceFromWager(wager));
 
@@ -52,6 +54,8 @@
       foundWager = (foundRace.wagers || []).find(function(w) {
         return w.id === wager.id;
       });
+
+      foundRace.timestamp = wager.timestamp;
 
       if (!foundWager) {
         foundRace.wagers.push(getNewWagerFromWager(wager));
@@ -72,6 +76,7 @@
 
     function getNewTrackFromWager(wager) {
       return {
+        timestamp: wager.timestamp || (new Date()).getTime(),
         name: wager.track,
         races: [getNewRaceFromWager(wager)]
       };
@@ -79,6 +84,7 @@
 
     function getNewRaceFromWager(wager) {
       return {
+        timestamp: wager.timestamp || (new Date()).getTime(),
         id: wager.race,
         wagers: [getNewWagerFromWager(wager)]
       };
@@ -86,6 +92,7 @@
 
     function getNewWagerFromWager(wager) {
       return {
+        timestamp: wager.timestamp || (new Date()).getTime(),
         id: wager.id,
         email: wager.email,
         amount: parseFloat(wager.amount, 10),

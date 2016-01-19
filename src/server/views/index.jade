@@ -10,7 +10,7 @@ append body-content
           th
           th
       tbody
-        tr(data-ng-repeat='track in mc.tracks')
+        tr(data-ng-repeat='track in mc.tracks | orderBy:timestamp:true')
           td(colspan='4')
             table.width-100pct.track
               tbody
@@ -22,14 +22,14 @@ append body-content
                         i.fa.fa-angle-double-down
                       span(data-ng-hide='track.hide')
                         i.fa.fa-angle-double-up
-                tr(data-ng-repeat='race in track.races', data-ng-hide='track.hide')
+                tr(data-ng-repeat='race in track.races | orderBy:timestamp:true', data-ng-hide='track.hide')
                   td
                     table.width-100pct
                       tbody
                         tr
                           td.race
                             span Race {{race.id}}
-                        tr(data-ng-repeat='wager in race.wagers')
+                        tr(data-ng-repeat='wager in race.wagers | orderBy:timestamp:true')
                           td.wager
                             gravatar(email='wager.email', size='20', round).valign-mid
                             span.lh-20 &nbsp;{{wager.displayAmt}} {{wager.type}} - {{wager.selections}}
