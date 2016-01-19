@@ -67,7 +67,7 @@
         return t;
       });
 
-      console.log(vm.tracks); // eslint-disable-line
+      console.log('Wager received...', wager); // eslint-disable-line
     }
 
     function getNewTrackFromWager(wager) {

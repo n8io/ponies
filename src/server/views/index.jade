@@ -14,10 +14,15 @@ append body-content
           td(colspan='4')
             table.width-100pct.track
               tbody
-                tr
+                tr(data-ng-click='track.hide = !track.hide').cursor-pointer
                   td.track
                     span {{track.name}}
-                tr(data-ng-repeat='race in track.races')
+                    .float-right
+                      span(data-ng-show='track.hide')
+                        i.fa.fa-angle-double-down
+                      span(data-ng-hide='track.hide')
+                        i.fa.fa-angle-double-up
+                tr(data-ng-repeat='race in track.races', data-ng-hide='track.hide')
                   td
                     table.width-100pct
                       tbody
@@ -27,6 +32,6 @@ append body-content
                         tr(data-ng-repeat='wager in race.wagers')
                           td.wager
                             gravatar(email='wager.email', size='20', round).valign-mid
-                            span.lh-20 &nbsp;{{'#' + wager.id}} - {{wager.displayAmount}} {{wager.type}} - {{wager.selections}}
-
+                            span.lh-20 &nbsp;{{wager.displayAmt}} {{wager.type}} - {{wager.selections}}
+                            .float-right.text-muted {{'#' + wager.id}}
     pre.code {{mc.tracks | json}}
