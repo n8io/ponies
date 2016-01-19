@@ -7,12 +7,14 @@
     ;
 
   /* @ngInject */
-  function masterController(socketIoService) {
+  function masterController($rootScope, EnumService, socketIoService, Pubnub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
 
     socketIoService.on('wager', onWagerReceived);
+
+    init();
 
     function onWagerReceived(wager) {
       console.log(wager); // eslint-disable-line
@@ -86,6 +88,39 @@
         selections: wager.selections,
         horses: wager.horses
       };
+    }
+
+    function init() {
+      const pubnubInstanceName = EnumService.PUBNUB.INSTANCE;
+      const pubnubChannelName = EnumService.PUBNUB.CHANNELS.WAGER;
+      const messageEventName = Pubnub.getInstance(pubnubInstanceName).getMessageEventNameFor(pubnubChannelName);
+      const presenceEventName = Pubnub.getInstance(pubnubInstanceName).getPresenceEventNameFor(pubnubChannelName);
+
+      $rootScope.$on(messageEventName, onMessageEvent); // eslint-disable-line
+      $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
+
+      Pubnub.getInstance(pubnubInstanceName).init({
+        'subscribe_key': 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe'
+      });
+
+      Pubnub.getInstance(pubnubInstanceName).subscribe({
+        channel: pubnubChannelName,
+        message: 'New message?',
+        triggerEvents: ['callback', 'presence']
+      });
+
+      function onMessageEvent(ngEvent, wager /* , envelope, channel*/) {
+        upsertWager(wager);
+      }
+
+      function onPresenceEvent(ngEvent, presenceEvent /* , envelope, channel*/) {
+        // apply presence event (join|leave) on users list
+        handlePresenceEvent(presenceEvent);
+      }
+    }
+
+    function handlePresenceEvent(ev) {
+      console.info('Presence event', ev); // eslint-disable-line
     }
   }
 })();

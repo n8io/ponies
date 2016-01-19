@@ -13,6 +13,12 @@
         CLIENT: {
           READY: 'clientReady'
         }
+      },
+      PUBNUB: {
+        INSTANCE: 'default',
+        CHANNELS: {
+          WAGER: 'wager'
+        }
       }
     };
   }
