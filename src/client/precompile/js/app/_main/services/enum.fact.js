@@ -17,7 +17,8 @@
       PUBNUB: {
         INSTANCE: 'default',
         CHANNELS: {
-          WAGER: 'wager'
+          WAGER: 'wager',
+          ALL_WAGERS: 'wagers-all'
         }
       }
     };

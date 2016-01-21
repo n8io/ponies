@@ -5,6 +5,7 @@ module.exports = function(gulp, plugins, cfg) {
 
   function js() {
     return gulp.src(cfg.js.client.src)
+      .pipe(plugins.debug())
       .pipe(plugins.concat(cfg.js.client.filename)) // Concatenate all files
       .pipe(plugins.babel())
       .pipe(plugins.ngAnnotate(cfg.js.client.ngAnnotate))

@@ -12,13 +12,10 @@
 
     vm.tracks = [];
 
-    socketIoService.on('wager', onWagerReceived);
-
     init();
 
-    function onWagerReceived(wager) {
-      console.log(wager); // eslint-disable-line
-      upsertWager(wager);
+    function upsertWagers(wagers) {
+      wagers.forEach(upsertWager);
     }
 
     function upsertWager(wager) {
@@ -75,19 +72,21 @@
     }
 
     function getNewTrackFromWager(wager) {
-      return {
-        timestamp: wager.timestamp || (new Date()).getTime(),
-        name: wager.track,
-        races: [getNewRaceFromWager(wager)]
-      };
+      const track = wager.track;
+
+      track.timestamp = wager.timestamp || (new Date()).getTime();
+      track.races = [getNewRaceFromWager(wager)];
+
+      return track;
     }
 
     function getNewRaceFromWager(wager) {
-      return {
-        timestamp: wager.timestamp || (new Date()).getTime(),
-        id: wager.race,
-        wagers: [getNewWagerFromWager(wager)]
-      };
+      const race = wager.race;
+
+      race.timestamp = wager.timestamp || (new Date()).getTime();
+      race.wagers = [getNewWagerFromWager(wager)];
+
+      return race;
     }
 
     function getNewWagerFromWager(wager) {
@@ -104,11 +103,14 @@
     }
 
     function init() {
-      const pubnubChannelName = EnumService.PUBNUB.CHANNELS.WAGER;
-      const messageEventName = PubNub.ngMsgEv(pubnubChannelName);
-      const presenceEventName = PubNub.ngPrsEv(pubnubChannelName);
+      const wagerChannel = EnumService.PUBNUB.CHANNELS.WAGER;
+      const allWagersChannel = EnumService.PUBNUB.CHANNELS.ALL_WAGERS;
+      const wagerEventName = PubNub.ngMsgEv(wagerChannel);
+      const allWagersEventName = PubNub.ngMsgEv(allWagersChannel);
+      const presenceEventName = PubNub.ngPrsEv(wagerChannel);
 
-      $rootScope.$on(messageEventName, onMessageEvent); // eslint-disable-line
+      $rootScope.$on(wagerEventName, onWagerReceived); // eslint-disable-line
+      $rootScope.$on(allWagersEventName, onAllWagersReceived); // eslint-disable-line
       $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
 
       PubNub.init({
@@ -117,13 +119,24 @@
       });
 
       PubNub.ngSubscribe({
-        channel: pubnubChannelName,
+        channel: wagerChannel,
         triggerEvents: ['callback', 'presence']
       });
 
-      function onMessageEvent(ngEvent, message /* , envelope, channel*/) {
+      PubNub.ngSubscribe({
+        channel: allWagersChannel,
+        triggerEvents: ['callback', 'presence']
+      });
+
+      function onWagerReceived(ngEvent, message /* , envelope, channel*/) {
         $timeout(function() {
           upsertWager(message.message);
+        });
+      }
+
+      function onAllWagersReceived(ngEvent, message /* , envelope, channel*/) {
+        $timeout(function() {
+          upsertWagers(message.message);
         });
       }
 

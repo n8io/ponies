@@ -29,7 +29,7 @@
 
         $window.name = client.id;
 
-        $rootScope.broadcast(EnumService.EVENTS.CLIENT.READY, client);
+        $rootScope.$broadcast(EnumService.EVENTS.CLIENT.READY, client);
       }
 
       $log.info('Client id set', client.id); // eslint-disable-line

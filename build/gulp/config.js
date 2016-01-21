@@ -95,6 +95,7 @@ const cfg = {
   js: {
     client: {
       src: [
+        path.join(srcDir, 'client/precompile/js/app/**/_*.js'),
         path.join(srcDir, 'client/precompile/js/app/**/*.js'),
         path.join(srcDir, 'client/precompile/js/common/**/*.js')
       ],
