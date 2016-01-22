@@ -3,7 +3,10 @@
     "browser": true
   },
   "globals": {
-    "angular": true
+    "angular": true,
+    "window": true,
+    "document": true,
+    "$": true
   },
   "plugins": [
     "angular"

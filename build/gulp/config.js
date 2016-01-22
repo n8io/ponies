@@ -118,7 +118,8 @@ const cfg = {
     twinspires: {
       src: [path.join(srcDir, 'client/precompile/js/twinspires/twinspires.js')],
       dest: path.join(distDir, 'js'),
-      filename: 'twinspires.min.js'
+      filename: 'twinspires.min.js',
+      filenameUnmind: 'twinspires.js'
     },
     server: {
       src: [
