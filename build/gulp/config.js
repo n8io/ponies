@@ -115,6 +115,11 @@ const cfg = {
         'single_quotes': true
       }
     },
+    twinspires: {
+      src: [path.join(srcDir, 'client/precompile/js/twinspires/twinspires.js')],
+      dest: path.join(distDir, 'js'),
+      filename: 'twinspires.min.js'
+    },
     server: {
       src: [
         path.join(srcDir, 'server/**/*.js'),

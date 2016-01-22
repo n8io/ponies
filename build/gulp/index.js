@@ -6,7 +6,7 @@ module.exports = function(gulp, plugins) {
 
   // Expose custom multi-tasks
   gulp.task('compile', ['compile-js', 'compile-css', 'compile-statics']);
-  gulp.task('compile-js', ['js']);
+  gulp.task('compile-js', plugins.sequence('js', 'twinspires'));
   gulp.task('compile-css', ['stylus']);
   gulp.task('compile-statics', ['statics']);
   gulp.task('lint-js', plugins.sequence('eslint-server', 'eslint-client'));

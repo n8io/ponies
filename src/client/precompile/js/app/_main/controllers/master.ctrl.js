@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function masterController($timeout, $location, $rootScope, EnumService, socketIoService, PubNub) {
+  function masterController($timeout, $location, $rootScope, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
@@ -78,19 +78,25 @@
         return t.BrisCode === result.BrisCode;
       });
 
+      if (!track) {
+        return;
+      }
+
       (track.races || []).forEach(function(rc) {
         const race = result.races.find(function(r) {
           return rc.id === r.race;
         });
 
-        rc.result = `${race.win.horse}/${race.place.horse}/${race.show.horse}`;
+        if (race) {
+          rc.result = `${race.win.horse}/${race.place.horse}/${race.show.horse}`;
+        }
       });
     }
 
     function getNewTrackFromWager(wager) {
       const track = wager.track;
 
-      track.timestamp = wager.timestamp || (new Date()).getTime();
+      track.timestamp = wager.timestamp;
       track.races = [getNewRaceFromWager(wager)];
 
       return track;
@@ -99,7 +105,7 @@
     function getNewRaceFromWager(wager) {
       const race = wager.race;
 
-      race.timestamp = wager.timestamp || (new Date()).getTime();
+      race.timestamp = wager.timestamp;
       race.wagers = [getNewWagerFromWager(wager)];
 
       return race;
@@ -115,7 +121,8 @@
         type: wager.type,
         selections: wager.selections,
         eventCode: wager.eventCode,
-        status: wager.status
+        status: wager.status,
+        user: wager.user
       };
     }
 
@@ -133,25 +140,30 @@
       $rootScope.$on(allResultsEventName, onAllResultsReceived); // eslint-disable-line
       $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
 
-      PubNub.init({
-        'subscribe_key': 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe',
-        ssl: $location.protocol().indexOf('s') > -1
-      });
+      ConfigService
+        .getConfig()
+        .then(function(res) {
+          PubNub.init({
+            'subscribe_key': res.data.pubNub.subscribeKey,
+            ssl: $location.protocol().indexOf('s') > -1
+          });
 
-      PubNub.ngSubscribe({
-        channel: wagerChannel,
-        triggerEvents: ['callback', 'presence']
-      });
+          PubNub.ngSubscribe({
+            channel: wagerChannel,
+            triggerEvents: ['callback', 'presence']
+          });
 
-      PubNub.ngSubscribe({
-        channel: allWagersChannel,
-        triggerEvents: ['callback', 'presence']
-      });
+          PubNub.ngSubscribe({
+            channel: allWagersChannel,
+            triggerEvents: ['callback', 'presence']
+          });
 
-      PubNub.ngSubscribe({
-        channel: allResultsChannel,
-        triggerEvents: ['callback', 'presence']
-      });
+          PubNub.ngSubscribe({
+            channel: allResultsChannel,
+            triggerEvents: ['callback', 'presence']
+          });
+        })
+        ;
 
       function onWagerReceived(ngEvent, message /* , envelope, channel*/) {
         $timeout(function() {

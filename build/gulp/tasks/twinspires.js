@@ -1,13 +1,13 @@
 module.exports = function(gulp, plugins, cfg) {
   const localEnv = 'local';
 
-  gulp.task('js', js);
+  gulp.task('twinspires', twinspires);
 
-  function js() {
-    return gulp.src(cfg.js.client.src)
-      .pipe(plugins.concat(cfg.js.client.filename)) // Concatenate all files
+  function twinspires() {
+    return gulp.src(cfg.js.twinspires.src)
+      .pipe(plugins.debug())
+      .pipe(plugins.concat(cfg.js.twinspires.filename)) // Concatenate all files
       .pipe(plugins.babel())
-      .pipe(plugins.ngAnnotate(cfg.js.client.ngAnnotate))
       .pipe(plugins.if(// Beautify or mangle
         cfg.env === localEnv,
         plugins.jsbeautifier(cfg.js.client.jsbeautifier),
@@ -18,11 +18,7 @@ module.exports = function(gulp, plugins, cfg) {
         plugins.stripDebug()
       ))
       .pipe(plugins.header(cfg.js.client.banner.formatStr, cfg.start)) // Add timestamp to banner
-      .pipe(gulp.dest(cfg.js.client.dest))
-      .pipe(plugins.if(
-        cfg.env === localEnv,
-        plugins.livereload()
-      ))
+      .pipe(gulp.dest(cfg.js.twinspires.dest))
       ;
   }
 };
