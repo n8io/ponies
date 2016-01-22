@@ -18,7 +18,8 @@
         INSTANCE: 'default',
         CHANNELS: {
           WAGER: 'wager',
-          ALL_WAGERS: 'wagers-all'
+          ALL_WAGERS: 'wagers-all',
+          ALL_RESULTS: 'results-all'
         }
       }
     };

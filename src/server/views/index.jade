@@ -16,7 +16,7 @@ append body-content
               tbody
                 tr(data-ng-click='track.hide = !track.hide').cursor-pointer
                   td.track
-                    span {{track.name}}
+                    span {{track.DisplayName}}
                     .float-right
                       span(data-ng-show='track.hide')
                         i.fa.fa-angle-double-down
@@ -32,7 +32,7 @@ append body-content
                         tr(data-ng-repeat='wager in race.wagers | orderBy:timestamp:true')
                           td.wager
                             gravatar(email='wager.email', size='20', round).valign-mid
-                            span.lh-20 &nbsp; {{wager.type}} - {{wager.selections}}&nbsp;
+                            span.lh-20 &nbsp; {{wager.type.Name}} - {{wager.selections}}&nbsp;
                             span.text-muted {{wager.amountDisplay}}
                             .float-right.text-muted
                               span {{wager.timestamp | date:'mediumTime'}}
