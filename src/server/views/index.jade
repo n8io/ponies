@@ -29,6 +29,7 @@ append body-content
                         tr
                           td.race
                             span Race {{race.id}}
+                            span(data-ng-show='race.result').race-result {{race.result}}
                         tr(data-ng-repeat='wager in race.wagers | orderBy:timestamp:true')
                           td.wager
                             gravatar(email='wager.email', size='20', round).valign-mid

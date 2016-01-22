@@ -71,8 +71,20 @@
       });
     }
 
-    function upsertResults(results) {
-      console.debug('Race results received...', results); // eslint-disable-line
+    function upsertResults(result) {
+      console.debug('Race results received...', result); // eslint-disable-line
+
+      const track = vm.tracks.find(function(t) {
+        return t.BrisCode === result.BrisCode;
+      });
+
+      (track.races || []).forEach(function(rc) {
+        const race = result.races.find(function(r) {
+          return rc.id === r.race;
+        });
+
+        rc.result = `${race.win.horse}/${race.place.horse}/${race.show.horse}`;
+      });
     }
 
     function getNewTrackFromWager(wager) {
@@ -102,7 +114,8 @@
         amountDisplay: `$${wager.betAmount.toFixed(2)}`,
         type: wager.type,
         selections: wager.selections,
-        eventCode: wager.eventCode
+        eventCode: wager.eventCode,
+        status: wager.status
       };
     }
 
