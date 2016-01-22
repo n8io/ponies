@@ -443,7 +443,7 @@
   function getRaceResults(track, callback) {
     callback = typeof callback === 'function' ? callback : function() {}; // eslint-disable-line
 
-    const url = '/secure-bin/results_tracks.cgi?track=' + track + '&race=all&type=1&type=1';
+    const url = '/secure-bin/results_tracks.cgi?track=' + track + '&race=all&type=1&type=1'; // eslint-disable-line
 
     console.debug('Fetching race results...', url); // eslint-disable-line
 
