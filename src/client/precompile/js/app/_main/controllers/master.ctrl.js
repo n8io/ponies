@@ -122,7 +122,8 @@
         selections: wager.selections,
         eventCode: wager.eventCode,
         status: wager.status,
-        user: wager.user
+        user: wager.user,
+        payoutAmount: wager.payoutAmount
       };
     }
 

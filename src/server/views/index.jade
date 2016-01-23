@@ -2,7 +2,7 @@ extends _layouts/master/_
 
 append body-content
   md-content
-    table.width-100pct
+    table(cellspacing='0', cellpadding='0').width-100pct
       thead
         tr
           th
@@ -12,7 +12,7 @@ append body-content
       tbody
         tr(data-ng-repeat='track in mc.tracks | orderBy:timestamp:true')
           td(colspan='4')
-            table.width-100pct.track
+            table(cellspacing='0', cellpadding='0').width-100pct.track
               tbody
                 tr(data-ng-click='track.hide = !track.hide').cursor-pointer
                   td.track
@@ -22,21 +22,22 @@ append body-content
                         i.fa.fa-angle-double-down
                       span(data-ng-hide='track.hide')
                         i.fa.fa-angle-double-up
-                tr(data-ng-repeat='race in track.races | orderBy:timestamp:true', data-ng-hide='track.hide')
+                tr(data-ng-repeat='race in track.races track by $index | orderBy:timestamp:true', data-ng-hide='track.hide')
                   td
-                    table.width-100pct
+                    table(cellspacing='0', cellpadding='0').width-100pct
                       tbody
                         tr
                           td.race
                             span Race {{race.id}}
                             span(data-ng-show='race.result').race-result {{race.result}}
                         tr(data-ng-repeat='wager in race.wagers | orderBy:timestamp:true')
-                          td.wager
+                          td.wager(data-ng-class='{ complete: wager.status == "PAID", pending: wager.status == "PENDING", win: wager.payoutAmount > 0, lost: (wager.payoutAmount == 0 && wager.status == "PAID") }')
                             gravatar(email='wager.email', size='20', round, title='{{wager.user.firstName + " " + wager.user.lastName}}').valign-mid
                             span.lh-20 &nbsp; {{wager.type.Name}} - {{wager.selections}}&nbsp;
-                            span {{wager.amountDisplay}}
+                            span(data-ng-show='wager.payoutAmount == 0') {{wager.amount | currency:'$':2}}
+                            span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
                             .float-right
-                              span {{wager.timestamp | ago}}
+                              span.ts(value='{{wager.timestamp}}') {{wager.timestamp | ago}}
                               span.hide-xs &nbsp;{{'#' + wager.id}}
     - if (process.env.NODE_ENV == 'local')
       pre.code {{mc.tracks | json}}
