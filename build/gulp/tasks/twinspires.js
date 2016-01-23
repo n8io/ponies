@@ -1,6 +1,4 @@
 module.exports = function(gulp, plugins, cfg) {
-  const localEnv = 'local';
-
   gulp.task('twinspires', twinspires);
 
   function twinspires() {

@@ -7,7 +7,8 @@ const routesRelativeDir = 'src/server/routes';
 module.exports = function(app, auth) {
   const prioritizedRoutes = [
     './heartbeat',
-    './api'
+    './api',
+    './bookmark'
   ];
 
   // Normalize to absolute paths
