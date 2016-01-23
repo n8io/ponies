@@ -412,6 +412,7 @@
       newWager.race = {id: w.race};
       newWager.track = window.n8.tracks.find(function(t) { return t.EventCode === w.eventCode; });
       newWager.eventCode = newWager.track.EventCode;
+      newWager.status = w.status;
 
       return newWager;
     });
