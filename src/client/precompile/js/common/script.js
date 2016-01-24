@@ -4,7 +4,7 @@
   setInterval(updateTimestamps, fifteenSeconds); // eslint-disable-line
 
   function updateTimestamps() {
-    $('.ts').each(function(ts) { // eslint-disable-line
+    $('.ts').each(function(index, ts) { // eslint-disable-line
       const $ts = $(ts); // eslint-disable-line
       const time = parseInt($ts.attr('value'), 0);
 
