@@ -162,8 +162,9 @@
 
     console.debug('Refreshing race results...', tracks);
     tracks.forEach(function(tr) {
+      var track = window.n8.tracks.find(function(t) { return t.EventCode === tr.eventCode; });
       callbackFns.push(function(cb) {
-        getRaceResults(tr, cb);
+        getRaceResults(track, cb);
       });
     });
 
@@ -456,7 +457,7 @@
       'harness': 2
     };
 
-    var url = '/secure-bin/results_tracks.cgi?track=' + track + '&race=all&type=' + lookups[track.TrackType.toLowerCase()];
+    var url = '/secure-bin/results_tracks.cgi?track=' + track.BrisCode + '&race=all&type=' + lookups[track.TrackType.toLowerCase()];
 
     console.debug('Fetching race results...', url);
 
@@ -464,7 +465,7 @@
       var data = parseResultsToJson(html) || {};
 
       data.track = {
-        BrisCode: track
+        BrisCode: track.BrisCode
       };
 
       return callback(null, data);
