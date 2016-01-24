@@ -2,7 +2,12 @@ extends _layouts/master/_
 
 append body-content
   md-content
-    table(cellspacing='0', cellpadding='0').width-100pct
+    table(cellspacing='0', cellpadding='0', data-ng-show='!mc.tracks || mc.tracks.length == 0').width-100pct
+      tbody
+        tr
+          td.text-center
+            span No bets are currently being synced.
+    table(cellspacing='0', cellpadding='0', data-ng-show='mc.tracks.length > 0').width-100pct
       thead
         tr
           th
@@ -38,6 +43,6 @@ append body-content
                             span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
                             .float-right
                               span.ts(value='{{wager.timestamp}}') {{wager.timestamp | ago}}
-                              span.hide-xs &nbsp;{{'#' + wager.id}}
+                              span(data-ng-show='false').hide-xs &nbsp;{{'#' + wager.id}}
     - if (process.env.NODE_ENV == 'local')
       pre.code {{mc.tracks | json}}

@@ -204,7 +204,10 @@
           + '&account=' + window.n8.user.accountNum
           + '&authKey=' + window.n8.user.authKey
           + '&output=json'
-          + '&limit=200';
+          + '&limit=200'
+          + '&cb='
+          + (new Date()).getTime().toString()
+          ;
 
         window.n8.wagerCreds.poolTypesUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Tote/PoolTypes?'
           + '&username=' + wc.USERNAME
@@ -213,6 +216,9 @@
           + '&affid=' + wc.CDI_SAID
           + '&affiliateId=' + wc.CDI_SAID
           + '&output=json'
+          + '&cb='
+          + (new Date()).getTime().toString()
+          ;
 
         window.n8.wagerCreds.trackListUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Cdi/TrackList?multisource=1&vidType=FLV'
           + '&username=' + uc.USERNAME
@@ -220,6 +226,9 @@
           + '&ip=' + uc.CDI_CLIENT_IP
           + '&affid=' + uc.CDI_SAID
           + '&output=json'
+          + '&cb='
+          + (new Date()).getTime().toString()
+          ;
       }
     }
   }

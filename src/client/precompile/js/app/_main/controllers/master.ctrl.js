@@ -27,7 +27,7 @@
 
       vm.tracks = vm.tracks || [];
 
-      foundTrack = (vm.tracks || []).find(function(t) {
+      foundTrack = vm.tracks.find(function(t) {
         return t.BrisCode === wager.track.BrisCode;
       });
 

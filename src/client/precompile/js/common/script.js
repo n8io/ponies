@@ -1,7 +1,7 @@
 (function() {
-  const fifteenSeconds = 1000 * 15;
+  const oneMinute = 1000 * 60;
 
-  setInterval(updateTimestamps, fifteenSeconds); // eslint-disable-line
+  setInterval(updateTimestamps, oneMinute); // eslint-disable-line
 
   function updateTimestamps() {
     $('.ts').each(function(index, ts) { // eslint-disable-line
