@@ -162,7 +162,7 @@
 
     console.debug('Refreshing race results...', tracks);
     tracks.forEach(function(tr) {
-      var track = window.n8.tracks.find(function(t) { return t.EventCode === tr.eventCode; });
+      var track = window.n8.tracks.find(function(t) { return t.BrisCode === tr; });
       callbackFns.push(function(cb) {
         getRaceResults(track, cb);
       });
