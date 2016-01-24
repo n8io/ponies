@@ -42,7 +42,7 @@
         return r.id === wager.race.id;
       });
 
-      foundTrack.timestamp = wager.timestamp;
+      foundTrack.timestamp = foundTrack.timestamp < wager.timestamp ? wager.timestamp : foundTrack.timestamp;
 
       if (!foundRace) {
         foundTrack.races.push(getNewRaceFromWager(wager));

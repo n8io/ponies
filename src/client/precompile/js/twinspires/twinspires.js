@@ -417,7 +417,7 @@
       var offsetTime = 1000 * 3; // Their server times are a few seconds slow
       var newWager = {};
 
-      newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() + offsetTime; // Wager dates are local to America/Los_Angeles
+      newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // Wager dates are local to America/Los_Angeles
       newWager.id = w.serialNumber;
       newWager.user = _.pick(window.n8.user, ['email', 'firstName', 'lastName']);
       newWager.betAmount = parseFloat(w.totalCost, 10);
