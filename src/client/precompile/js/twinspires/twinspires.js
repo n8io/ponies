@@ -367,6 +367,10 @@
 
     if (tracks.length) {
       tracks.forEach(function(t) {
+        if (t.races.length === 0) {
+          return;
+        }
+
         console.debug('Pushing race results...', t);
         window.PubNub.publish({
           channel: RESULTS_BULK_CHANNEL,
