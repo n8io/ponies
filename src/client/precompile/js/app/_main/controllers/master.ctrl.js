@@ -15,7 +15,9 @@
     init();
 
     function upsertWagers(wagers) {
-      wagers.forEach(upsertWager);
+      wagers.forEach(function(w) {
+        upsertWager(w);
+      });
     }
 
     function upsertWager(wager) {
@@ -24,8 +26,6 @@
       let foundWager;
 
       console.debug('Wager received...', wager); // eslint-disable-line
-
-      vm.tracks = vm.tracks || [];
 
       foundTrack = vm.tracks.find(function(t) {
         return t.BrisCode === wager.track.BrisCode;
@@ -61,14 +61,6 @@
 
         return;
       }
-
-      vm.tracks = vm.tracks.map(function(t) {
-        if (t.name === foundTrack.name) {
-          t = foundTrack;
-        }
-
-        return t;
-      });
     }
 
     function upsertResults(result) {
@@ -117,7 +109,6 @@
         id: wager.id,
         email: wager.user.email,
         amount: wager.betAmount,
-        amountDisplay: `$${wager.betAmount.toFixed(2)}`,
         type: wager.type,
         selections: wager.selections,
         eventCode: wager.eventCode,

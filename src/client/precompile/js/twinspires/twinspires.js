@@ -451,7 +451,12 @@
   function getRaceResults(track, callback) {
     callback = typeof callback === 'function' ? callback : function() {};
 
-    var url = '/secure-bin/results_tracks.cgi?track=' + track + '&race=all&type=1&type=1';
+    var lookups = {
+      'thoroughbred': 1,
+      'harness': 2
+    };
+
+    var url = '/secure-bin/results_tracks.cgi?track=' + track + '&race=all&type=' + lookups[track.TrackType.toLowerCase()];
 
     console.debug('Fetching race results...', url);
 
