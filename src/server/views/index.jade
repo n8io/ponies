@@ -6,42 +6,48 @@ append body-content
       tbody
         tr
           td.text-center
-            span No bets are currently being synced.
-    table(cellspacing='0', cellpadding='0', data-ng-show='mc.tracks.length > 0').width-100pct
-      tbody
-        tr(data-ng-repeat='track in mc.tracks | orderBy:"timestamp":true')
-          td
-            table(cellspacing='0', cellpadding='0').width-100pct.track
-              tbody
-                tr(data-ng-click='track.hide = !track.hide').cursor-pointer
-                  td.track
-                    span {{track.DisplayName}}
-                    .float-right
-                      span(data-ng-show='track.hide')
-                        i.fa.fa-angle-double-down
-                      span(data-ng-hide='track.hide')
-                        i.fa.fa-angle-double-up
-                tr(data-ng-repeat='race in track.races | orderBy:"id":true', data-ng-hide='track.hide')
-                  td
-                    table(cellspacing='0', cellpadding='0').width-100pct
-                      tbody
-                        tr(data-ng-class='{complete: !!race.result}', data-ng-click='race.hide = !race.hide').cursor-pointer
-                          td.race
-                            span Race {{race.id}}
-                            span(data-ng-show='race.result').race-result {{race.result}}
-                            .float-right
-                              span(data-ng-show='race.hide')
-                                i.fa.fa-angle-double-down
-                              span(data-ng-hide='race.hide')
-                                i.fa.fa-angle-double-up
-                        tr(data-ng-repeat='wager in race.wagers | orderBy:"timestamp"', data-ng-hide='race.hide')
-                          td.wager(data-ng-class='{ complete: wager.status == "PAID", pending: wager.status == "PENDING", placed: wager.status == "PLACED", win: wager.payoutAmount > 0, lost: (wager.payoutAmount == 0 && wager.status == "PAID") }')
-                            gravatar(email='wager.email', size='20', round, title='{{wager.user.firstName + " " + wager.user.lastName}}').valign-mid
-                            span.lh-20 &nbsp; {{wager.type.Name}} - {{wager.selections}}&nbsp;
-                            span(data-ng-show='wager.payoutAmount == 0') {{wager.amount | currency:'$':2}}
-                            span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
-                            .float-right
-                              span.ts(value='{{wager.timestamp}}') {{wager.timestamp | ago}}
-                              span(data-ng-hide='true').hide-xs &nbsp;{{'#' + wager.id}}
+            span Waiting on bets to sync...
+            p
+              a(href='/bookmark')
+                i.fa.fa-bookmark.mgn-right-5
+                span Turn on syncing with the bookmark
+    .width-100pct(data-ng-show='mc.tracks.length > 0')
+      table(cellspacing='0', cellpadding='0').width-100pct
+        tbody
+          tr(data-ng-repeat='track in mc.tracks | orderBy:"timestamp":true')
+            td
+              table(cellspacing='0', cellpadding='0').width-100pct.track
+                tbody
+                  tr(data-ng-click='track.hide = !track.hide').cursor-pointer
+                    td.track
+                      span {{track.DisplayName}}
+                      .float-right
+                        span(data-ng-show='track.hide')
+                          i.fa.fa-angle-double-down
+                        span(data-ng-hide='track.hide')
+                          i.fa.fa-angle-double-up
+                  tr(data-ng-repeat='race in track.races | orderBy:"id":true', data-ng-hide='track.hide')
+                    td
+                      table(cellspacing='0', cellpadding='0').width-100pct
+                        tbody
+                          tr(data-ng-class='{complete: !!race.result}', data-ng-click='race.hide = !race.hide').cursor-pointer
+                            td.race
+                              .float-left Race {{race.id}}
+                              .float-left(data-ng-show='race.result').race-result.mgn-right-7 {{race.result}}
+                              .float-left(data-ng-repeat='ww in mc.winnningWagers(race)').winning-wager-icon
+                              .float-right
+                                span(data-ng-show='race.hide')
+                                  i.fa.fa-angle-double-down
+                                span(data-ng-hide='race.hide')
+                                  i.fa.fa-angle-double-up
+                          tr(data-ng-repeat='wager in race.wagers | orderBy:"timestamp"', data-ng-hide='race.hide')
+                            td.wager(data-ng-class='{ complete: wager.status == "PAID", pending: wager.status == "PENDING", placed: wager.status == "PLACED", win: wager.payoutAmount > 0, lost: (wager.payoutAmount == 0 && wager.status == "PAID") }')
+                              gravatar(email='wager.email', size='20', round, title='{{wager.user.firstName + " " + wager.user.lastName}}').valign-mid
+                              span.lh-20 &nbsp; {{wager.type.Name}} - {{wager.selections}}&nbsp;
+                              span(data-ng-show='wager.payoutAmount == 0') {{wager.amount | currency:'$':2}}
+                              span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
+                              .float-right
+                                span.ts(value='{{wager.timestamp}}') {{wager.timestamp | ago}}
+                                span(data-ng-hide='true').hide-xs &nbsp;{{'#' + wager.id}}
     - if (process.env.NODE_ENV == 'local')
       pre.code {{mc.tracks | json}}

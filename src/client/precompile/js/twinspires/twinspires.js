@@ -414,7 +414,7 @@
     }
 
     return wagers.map(function(w) {
-      var offsetTime = 1000 * 3; // Their server times are a few seconds slow
+      var offsetTime = 1000 * 10; // Their server times are a few seconds slow
       var newWager = {};
 
       newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // Wager dates are local to America/Los_Angeles

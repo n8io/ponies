@@ -6,6 +6,13 @@ body
 body.resolved
   opacity 1
 
+a
+  text-decoration none
+  &:visited
+    color inherit
+  &:hover
+    text-decoration underline
+
 .no-q-logo
   padding-top 30px
 
@@ -78,10 +85,22 @@ td.track
   font-weight bold
   color #fff
   background-color #555
+  &:hover
+  &:active
+  &:focus
+  &:active
+    background-color lighten(#555, 10%)
+    outline none !important
 td.race
   padding 5px
   padding-left 10px
   font-weight bold
+  &:hover
+  &:active
+  &:focus
+  &:active
+    background-color darken(#fff, 3%)
+    outline none !important
 td.wager
   padding 3px 5px 2px 20px
   border-bottom 1px solid rgba(0,0,0,.1)
@@ -104,6 +123,8 @@ td.wager
   opacity .6
 .float-right
   float right
+.float-left
+  float left
 .cursor-pointer
   cursor pointer
 .race-result
@@ -111,6 +132,7 @@ td.wager
   padding 1px 3px
   border 1px solid #000
   border-radius 5px
+  font-size 80%
 .footer
   text-align center
   margin 10px
@@ -125,3 +147,25 @@ td.wager
   padding-top 3px
 .text-center
   text-align center
+.mgn-right-5
+  margin-right 5px
+.mgn-right-7
+  margin-right 7px
+.mgn-left-5
+  margin-left 5px
+.winning-wager-icon
+  height 8px
+  width 8px
+  background green
+  margin 6px 5px 0 5px
+  border-radius 5px
+.position-relative
+  position relative
+.position-absolute
+  position absolute
+.y-center
+  position absolute
+  top 50%
+  transform translateY(-50%)
+.display-inline
+  display inline

@@ -12,6 +12,8 @@
 
     vm.tracks = [];
 
+    vm.winnningWagers = winnningWagers;
+
     init();
 
     function upsertWagers(wagers) {
@@ -116,6 +118,18 @@
         user: wager.user,
         payoutAmount: wager.payoutAmount
       };
+    }
+
+    function winnningWagers(race) {
+      if (!race || !race.wagers) {
+        return [];
+      }
+
+      const winningWagers = race.wagers.filter(function(w) {
+        return w.payoutAmount > 0;
+      });
+
+      return winningWagers;
     }
 
     function init() {
