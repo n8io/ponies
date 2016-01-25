@@ -105,16 +105,20 @@ td.wager
   padding 3px 5px 2px 20px
   border-bottom 1px solid rgba(0,0,0,.1)
   opacity 1
+  font-size 85%
   &.complete
-  &.PAID
-  &.PENDING
-  &.PLACED
+  &.paid
+  &.pending
     font-weight normal
     opacity .8
-    &.win
-      background-color rgba(green, .2)
-    &.lost
-      background-color rgba(red, .05)
+  &.placed
+    background-color rgba(0, 123, 255, .05)
+  &.canceled
+    display none
+  &.win
+    background-color rgba(green, .05)
+  &.lost
+    background-color rgba(red, .05)
 
 .width-100pct
   width 100%
@@ -169,3 +173,18 @@ td.wager
   transform translateY(-50%)
 .display-inline
   display inline
+.wager-timestamp-container
+  max-height 15px
+  overflow-x hidden
+  margin-top 3px
+  position relative
+  text-align right
+  .wager-timestamp-window
+    position relative
+    transition all 500ms ease-out
+    &:hover
+    &:active
+    &:focus
+    &:active
+      margin-top -16px
+

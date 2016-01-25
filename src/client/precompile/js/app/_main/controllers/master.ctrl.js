@@ -63,6 +63,9 @@
 
         return;
       }
+      else {
+        foundWager = getNewWagerFromWager(wager);
+      }
     }
 
     function upsertResults(result) {
