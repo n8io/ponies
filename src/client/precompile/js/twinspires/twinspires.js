@@ -192,8 +192,9 @@
     function refresh() {
       // console.debug('Refreshing control data...');
 
-      if (window.n8.user && window.n8.user.email && !hasSyncedBefore) {
+      if (window.n8.user && window.n8.user.email && !window.n8.hasSyncedBefore) {
         var uuid = window.n8.user.email;
+
         window.PubNub.db.set('session', uuid);
         window.PubNub.state({
           channel: WAGER_ALL_CHANNEL,
