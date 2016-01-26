@@ -1,11 +1,11 @@
 extends _layouts/master/_
 
 append body-content
+  - var js = "javascript:(function()%7Bfunction%20callback()%7B%7Dvar%20s%3Ddocument.createElement(%22script%22)%3Bs.src%3D%22https%3A%2F%2Fpownies.herokuapp.com%2Fjs%2Ftwinspires.min.js%22%3Bif(s.addEventListener)%7Bs.addEventListener(%22load%22%2Ccallback%2Cfalse)%7Delse%20if(s.readyState)%7Bs.onreadystatechange%3Dcallback%7Ddocument.body.appendChild(s)%3B%7D)()";
   md-content(layout-align='center center')
-    div(flex).footer
-      span 1. Drag this link to your bookmarks --&gt;&nbsp;
-      a(href="javascript:(function()%7Bfunction%20callback()%7B%7Dvar%20s%3Ddocument.createElement(%22script%22)%3Bs.src%3D%22https%3A%2F%2Fpownies.herokuapp.com%2Fjs%2Ftwinspires.min.js%22%3Bif(s.addEventListener)%7Bs.addEventListener(%22load%22%2Ccallback%2Cfalse)%7Delse%20if(s.readyState)%7Bs.onreadystatechange%3Dcallback%7Ddocument.body.appendChild(s)%3B%7D)()")
-        | Sync Bets
-      p(style='max-width: 400px; margin: 15px auto;')
-        p 2. Then when on the TwinSpires "Express" betting page, click it.
-        p 3. You should then see a button in the botter right corner to toggle syncing.
+
+    :markdown
+      1. Drag this link to your bookmarks --> <a href="#{js}" onclick='prompt("Copy/Paste the following into a new bookmark:", "#{js}"); return false;' class='bookmarklet'><i class="fa fa-bookmark"></i> Sync Bets</a>
+      1. Then when on the <a href='https://www.twinspires.com/php/tsexpress' target='_twinspires'>TwinSpires "Express" betting page <i class="fa fa-external-link"></i></a>, click the bookmark.
+      1. A button should appear in the botter right corner to toggle syncing.
+      1. As you make bets, you should see them appear on the <a href='/'>main page</a>.

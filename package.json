@@ -91,6 +91,7 @@
     "gulp-watch": "^4.3.5",
     "jade": "^1",
     "lodash": "^3",
+    "markdown-js": "0.0.3",
     "moment": "^2",
     "morgan": "^1",
     "ng-annotate": "^1",

@@ -6,12 +6,23 @@ body
 body.resolved
   opacity 1
 
+img.logo
+  height 25px
+  width 25px
+  top 4px
+  left 0
+  position absolute
+
 a
+  color #222
   text-decoration none
+  border-bottom 1px dashed #ddd
   &:visited
     color inherit
   &:hover
-    text-decoration underline
+  &:active
+  &:focus
+    border-bottom 1px dotted #555
 
 .no-q-logo
   padding-top 30px
@@ -21,17 +32,6 @@ md-toolbar
     a
       color #fff
       text-decoration none
-.md-button.sumo-green:not([disabled])
-  background-color #5bc739
-  &:hover
-  &:active
-  &:focus
-    background-color #5bc739
-.md-button.md-raised.sumo-green:not([disabled])
-  &:hover
-  &:active
-  &:focus
-    background-color #87d955
 .cursor-pointer
   cursor pointer
 .admin-edit
@@ -86,7 +86,6 @@ td.track
   color #fff
   background-color #555
   &:hover
-  &:active
   &:focus
   &:active
     background-color lighten(#555, 10%)
@@ -96,7 +95,6 @@ td.race
   padding-left 10px
   font-weight bold
   &:hover
-  &:active
   &:focus
   &:active
     background-color darken(#fff, 3%)
@@ -120,7 +118,6 @@ td.wager
   &.lost
     background-color rgba(red, .05)
   &:hover
-  &:active
   &:focus
   &:active
     &.win
@@ -134,7 +131,7 @@ td.wager
   width 100%
 
 .text-muted
-  opacity .6
+  opacity 0.6
 .float-right
   float right
 .float-left
@@ -189,13 +186,18 @@ td.wager
   margin-top 3px
   position relative
   text-align right
-  whitespace nowrap
+  white-space nowrap
   .wager-timestamp-window
     position relative
     transition all 500ms ease-out
     &:hover
-    &:active
     &:focus
     &:active
       margin-top -16px
-
+a.bookmarklet
+  background-color #0070FF
+  color #fff
+  font-size 90%
+  padding 3px 5px
+  border-radius 3px
+  border-bottom none !important
