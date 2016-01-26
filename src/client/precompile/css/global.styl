@@ -119,7 +119,17 @@ td.wager
     background-color rgba(green, .05)
   &.lost
     background-color rgba(red, .05)
-
+  &:hover
+  &:active
+  &:focus
+  &:active
+    &.win
+      background-color rgba(green, .1)
+    &.lost
+      background-color rgba(red, .1)
+    .wager-timestamp-container
+      .wager-timestamp-window
+        margin-top -16px
 .width-100pct
   width 100%
 
@@ -175,10 +185,11 @@ td.wager
   display inline
 .wager-timestamp-container
   max-height 15px
-  overflow-x hidden
+  overflow-y hidden
   margin-top 3px
   position relative
   text-align right
+  whitespace nowrap
   .wager-timestamp-window
     position relative
     transition all 500ms ease-out

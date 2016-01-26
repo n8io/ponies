@@ -496,6 +496,10 @@
 
       var $rows = $tbl.find('tr:gt(1)');
 
+      if ($rows.length === 0) {
+        return null; // No results data
+      }
+
       $rows.each(function(j, row) {
         var $row = $(row);
         var payout = {
