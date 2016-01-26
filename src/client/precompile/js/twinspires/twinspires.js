@@ -98,13 +98,15 @@
 
   function initializePubNub() {
     setTimeout(function() {
-      console.debug('Initing PubNub....');
+      var uuid =  decodeURIComponent(readCookie('emailid'));
+
+      console.debug('Initing PubNub....', uuid);
 
       window.PubNub = PUBNUB.init({
         publish_key: 'pub-c-c51fe29c-192d-449c-a61b-1715f42ced37',
         subscribe_key: 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe',
         ssl: true,
-        uuid: decodeURIComponent(readCookie('emailid'))
+        uuid: uuid
       });
     }, 1000);
   }
@@ -192,18 +194,15 @@
     function refresh() {
       // console.debug('Refreshing control data...');
 
-      if (window.n8.user && window.n8.user.email && !window.n8.hasSyncedBefore) {
-        var uuid = window.n8.user.email;
+      window.n8.user = getUserInfo();
 
-        window.PubNub.db.set('session', uuid);
+      if (window.n8.user && window.n8.user.email && !window.n8.hasSyncedBefore) {
         window.PubNub.state({
           channel: WAGER_ALL_CHANNEL,
           uuid: uuid,
           state: window.n8.user
         });
       }
-
-      window.n8.user = getUserInfo();
 
       if (window.__wagerCreds) {
         var wc = window.__wagerCreds;
