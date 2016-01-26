@@ -143,12 +143,12 @@
       const allWagersEventName = PubNub.ngMsgEv(allWagersChannel);
       const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
       const allResultsEventName = PubNub.ngMsgEv(allResultsChannel);
-      const presenceEventName = PubNub.ngPrsEv(wagerChannel);
+      // const presenceEventName = PubNub.ngPrsEv(wagerChannel);
 
       $rootScope.$on(wagerEventName, onWagerReceived); // eslint-disable-line
       $rootScope.$on(allWagersEventName, onAllWagersReceived); // eslint-disable-line
       $rootScope.$on(allResultsEventName, onAllResultsReceived); // eslint-disable-line
-      $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
+      // $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
 
       ConfigService
         .getConfig()
@@ -193,16 +193,16 @@
         });
       }
 
-      function onPresenceEvent(ngEvent, presenceEvent /* , envelope, channel*/) {
-        $timeout(function() {
-          // apply presence event (join|leave) on users list
-          handlePresenceEvent(presenceEvent);
-        });
-      }
+      // function onPresenceEvent(ngEvent, presenceEvent /* , envelope, channel*/) {
+      //   $timeout(function() {
+      //     // apply presence event (join|leave) on users list
+      //     handlePresenceEvent(presenceEvent);
+      //   });
+      // }
     }
 
-    function handlePresenceEvent(ev) {
-      console.info('Presence event', ev); // eslint-disable-line
-    }
+    // function handlePresenceEvent(ev) {
+    //   console.info('Presence event', ev); // eslint-disable-line
+    // }
   }
 })();
