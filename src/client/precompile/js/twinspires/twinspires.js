@@ -1,5 +1,8 @@
 /* eslint-disable */
 (function() {
+  var WAGER_DIFF_CHANNEL = 'wager';
+  var WAGER_ALL_CHANNEL = 'wagers-all';
+
   init();
 
   function init() {
@@ -188,6 +191,17 @@
 
     function refresh() {
       // console.debug('Refreshing control data...');
+
+      if (window.n8.user && window.n8.user.email && !hasSyncedBefore) {
+        var uuid = window.n8.user.email;
+        window.PubNub.db.set('session', uuid);
+        window.PubNub.state({
+          channel: WAGER_ALL_CHANNEL,
+          uuid: uuid,
+          state: window.n8.user
+        });
+      }
+
       window.n8.user = getUserInfo();
 
       if (window.__wagerCreds) {
@@ -388,9 +402,6 @@
   }
 
   function pushWagers(wagers, isDiff) {
-    var WAGER_DIFF_CHANNEL = 'wager';
-    var WAGER_ALL_CHANNEL = 'wagers-all';
-
     if (!wagers || !wagers.length) {
       return;
     }

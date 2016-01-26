@@ -119,7 +119,8 @@
         eventCode: wager.eventCode,
         status: wager.status,
         user: wager.user,
-        payoutAmount: wager.payoutAmount
+        payoutAmount: wager.payoutAmount,
+        refundAmount: wager.refundAmount
       };
     }
 
@@ -159,7 +160,7 @@
 
           PubNub.ngSubscribe({
             channel: wagerChannel,
-            triggerEvents: ['callback', 'presence']
+            triggerEvents: ['callback']
           });
 
           PubNub.ngSubscribe({
@@ -169,7 +170,7 @@
 
           PubNub.ngSubscribe({
             channel: allResultsChannel,
-            triggerEvents: ['callback', 'presence']
+            triggerEvents: ['callback']
           });
         })
         ;
