@@ -196,14 +196,6 @@
 
       window.n8.user = getUserInfo();
 
-      if (window.n8.user && window.n8.user.email && !window.n8.hasSyncedBefore) {
-        window.PubNub.state({
-          channel: WAGER_ALL_CHANNEL,
-          uuid: uuid,
-          state: window.n8.user
-        });
-      }
-
       if (window.__wagerCreds) {
         var wc = window.__wagerCreds;
         var uc = Cdi.AppConfig.WS;
