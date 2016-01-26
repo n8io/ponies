@@ -256,9 +256,14 @@
 
   function getUserInfo() {
     var obj = JSON.parse(sessionStorage.getItem('GlobalData'));
-    var key = Object.keys(obj)[0];
 
-    return obj[key];
+    if (obj) {
+      var key = Object.keys(obj)[0];
+
+      return obj[key];
+    }
+
+    return {};
   }
 
   function readCookie(name) {

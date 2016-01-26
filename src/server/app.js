@@ -1,6 +1,5 @@
 const app = require('express')();
 const server = require('http').Server(app);
-const io = require('socket.io')(server);
 const stormpath = require('express-stormpath');
 
 require('dotenv-safe').load();
@@ -11,18 +10,18 @@ const port = process.env.PORT;
 const host = process.env.HOST;
 
 app.use(stormpath.init(app, {
-  website: true
+  website: true,
+  web: {
+    register: {
+      enabled: false
+    }
+  }
 }));
 
 require('./middleware')(app);
 require('./routes')(app, stormpath);
 
 app.on('stormpath.ready', startApp);
-app.io = io;
-
-io.on('connection', function(socket) {
-  socket.emit('news', {hello: 'world'});
-});
 
 function startApp() {
   server.listen(port, host, function() {
