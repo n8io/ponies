@@ -203,14 +203,14 @@
         });
       }
 
-      function onPresenceEvent(event, presenceEvent /* , envelope, channel*/) {
+      function onPresenceEvent(event /* presenceEvent, envelope, channel*/) {
         $timeout(function() {
           // apply presence event (join|leave) on users list
           handlePresenceEvent(event);
         });
       }
 
-      function onSyncPresenceEvent(event, presenceEvent /* , envelope, channel*/) {
+      function onSyncPresenceEvent(event /* presenceEvent, envelope, channel*/) {
         $timeout(function() {
           // apply presence event (join|leave) on users list
           handleSyncPresenceEvent(event);
