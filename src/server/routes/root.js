@@ -15,5 +15,5 @@ function routeHandler(app, auth) {
 }
 
 function getRoot(req, res) {
-  return res.render('index', {});
+  return res.render('index', {user: req.user});
 }

@@ -18,6 +18,7 @@
         INSTANCE: 'default',
         CHANNELS: {
           WAGER: 'wager',
+          WAGER_SYNC: 'sync',
           ALL_WAGERS: 'wagers-all',
           ALL_RESULTS: 'results-all'
         }

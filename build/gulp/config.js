@@ -21,6 +21,8 @@ const validEnvironments = {
 };
 const now = moment();
 
+require('dotenv-safe').load();
+
 const cfg = {
   env: validEnvironments[process.env.NODE_ENV || ''] || validEnvironments.prod,
   clean: {

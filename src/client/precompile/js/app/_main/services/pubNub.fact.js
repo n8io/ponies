@@ -3,11 +3,11 @@
 
   angular
     .module('app.services')
-    .factory('d3', d3Service)
+    .factory('PubNub', pubNub)
     ;
 
   /* @ngInject */
-  function d3Service() {
-    return d3; // eslint-disable-line
+  function pubNub() {
+    return PUBNUB; // eslint-disable-line
   }
 })();

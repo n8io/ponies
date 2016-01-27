@@ -10,5 +10,5 @@ md-toolbar(layout='row')
     - if (!user)
       md-button(href='/admin', aria-label='Log In') Log In
     - else
-      md-button(href='/logout', aria-label='Log Out') Log Out
+      md-button(href='/logout', aria-label='Log Out') Log Out #{user.givenName}
 

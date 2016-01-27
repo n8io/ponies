@@ -1,5 +1,6 @@
 /* eslint-disable */
 (function() {
+  var WAGER_SYNC_CHANNEL = 'sync';
   var WAGER_DIFF_CHANNEL = 'wager';
   var WAGER_ALL_CHANNEL = 'wagers-all';
 
@@ -98,15 +99,12 @@
 
   function initializePubNub() {
     setTimeout(function() {
-      var uuid =  decodeURIComponent(readCookie('emailid'));
-
-      console.debug('Initing PubNub....', uuid);
+      console.debug('Initing PubNub....');
 
       window.PubNub = PUBNUB.init({
         publish_key: 'pub-c-c51fe29c-192d-449c-a61b-1715f42ced37',
         subscribe_key: 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe',
-        ssl: true,
-        uuid: uuid
+        ssl: true
       });
     }, 1000);
   }
@@ -308,6 +306,10 @@
       clearTimeout(window.__nowAllWagers);
       clearTimeout(window.__nowRefreshRaceResults);
 
+      PubNub.unsubscribe({
+        channel: WAGER_DIFF_CHANNEL
+      });
+
       window.n8.hasSyncedBefore = false;
 
       return;
@@ -317,6 +319,14 @@
     var fiveSeconds = 1000 * 5;
     var thirtySeconds = 1000 * 30;
     var twoMinutes = 1000 * 60 * 2;
+
+    PubNub.subscribe({
+      channel: WAGER_DIFF_CHANNEL,
+      'subscribe_key': '{{pubsub_subscribe_key}}',
+      state: {
+        user: window.n8.user
+      }
+    });
 
     window.__wagerInterval = setInterval(diffWagers, threeSeconds);
     window.__allWagersInterval = setInterval(allWagers, twoMinutes);

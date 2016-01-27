@@ -48,3 +48,6 @@ append body-content
                                 wager-timestamp(wager='wager')
     - if (process.env.NODE_ENV == 'local')
       pre.code {{mc.tracks | json}}
+  .presence-container
+    .presence(data-ng-repeat='presence in mc.presences', data-ng-class='{syncing: presence.isSyncing}')
+      gravatar(email='presence.email', size='50', round, title='{{presence.givenName + " " + presence.surname}}', default='http://google.com/broken-image.jpg', letter='presence.givenName')

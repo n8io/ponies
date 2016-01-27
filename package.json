@@ -83,6 +83,7 @@
     "gulp-load-plugins": "^1",
     "gulp-ng-annotate": "^1",
     "gulp-rename": "^1",
+    "gulp-replace": "^0.5.4",
     "gulp-sequence": "^0",
     "gulp-strip-debug": "^1",
     "gulp-stylus": "^2",

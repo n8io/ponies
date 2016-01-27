@@ -7,6 +7,7 @@ module.exports = function(gulp, plugins, cfg) {
       .pipe(plugins.babel())
       .pipe(plugins.jsbeautifier(cfg.js.client.jsbeautifier))
       .pipe(plugins.header(cfg.js.client.banner.formatStr, cfg.start)) // Add timestamp to banner
+      .pipe(plugins.replace(/{{pubsub_subscribe_key}}/ig, process.env.PUBNUB_SUBSCRIBE_KEY))
       .pipe(gulp.dest(cfg.js.twinspires.dest))
       .pipe(plugins.stripDebug())
       .pipe(plugins.uglify(cfg.js.client.uglify))

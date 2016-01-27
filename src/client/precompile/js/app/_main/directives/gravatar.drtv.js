@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function gravatar(CryptoService, UtilityService, D3Service) {
+  function gravatar(CryptoService, UtilityService, d3) {
     return {
       restrict: 'E',
       scope: {
@@ -23,7 +23,7 @@
     function linkFn($scope, element, attrs) {
       $scope.uuid = UtilityService.uuid();
       $scope.class = `gravatar-${$scope.uuid}`;
-      $scope.letter = (attrs.letter || '');
+      $scope.letter = $scope.letter || '';
       $scope.size = parseInt(attrs.size, 0) || 80;
       $scope.defaultImage = attrs.default || 'mm';
       $scope.forceDefault = angular.isDefined(attrs.force);
@@ -32,7 +32,7 @@
       $scope.emailHash = CryptoService.MD5($scope.email).toString();
 
       element.bind('error', function() {
-        const svg = angular.element(buildInitialLetterSvg($scope.letter, $scope.size, $scope.round));
+        const svg = angular.element(buildInitialLetterSvg($scope.letter, $scope.size, $scope.round, element));
 
         element.css('display', 'none'); // Hide broken image, replace with initial letter svg
 
@@ -61,13 +61,13 @@
       }
     }
 
-    function buildInitialLetterSvg(initial, size, round) {
+    function buildInitialLetterSvg(initial, size, round, element) {
       const initialScale = 20;
       const scaledFontSize = `${parseInt(size / initialScale, 0) * 100}%`;
-      const container = D3Service.select(angular.element('<div/>')[0]);
+      const container = d3.select(angular.element('<div/>')[0]);
       const svg = container
         .append('svg')
-        .attr('xmlns', D3Service.ns.prefix.svg)
+        .attr('xmlns', d3.ns.prefix.svg)
         .attr('height', size)
         .attr('width', size)
         ;
@@ -81,6 +81,8 @@
         .attr('fill', '#ddd')
         ;
 
+      container.attr('title', angular.element(element).attr('title'));
+
       if (round) {
         rect.attr('rx', size);
       }
@@ -89,7 +91,7 @@
 
       const text = svg // eslint-disable-line
         .append('text')
-        .text(initial)
+        .text(initial.toUpperCase())
         .attr('x', '50%')
         .attr('y', '50%')
         .attr('text-anchor', 'middle')

@@ -1,6 +1,8 @@
 (function() {
   'use strict';
 
+  let userInfo;
+
   angular
     .module('app.controllers')
     .controller('MasterController', masterController)
@@ -13,6 +15,7 @@
     vm.tracks = [];
 
     vm.winnningWagers = winnningWagers;
+    vm.presences = [];
 
     init();
 
@@ -138,71 +141,203 @@
 
     function init() {
       const wagerChannel = EnumService.PUBNUB.CHANNELS.WAGER;
-      const wagerEventName = PubNub.ngMsgEv(wagerChannel);
       const allWagersChannel = EnumService.PUBNUB.CHANNELS.ALL_WAGERS;
-      const allWagersEventName = PubNub.ngMsgEv(allWagersChannel);
       const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
-      const allResultsEventName = PubNub.ngMsgEv(allResultsChannel);
-      // const presenceEventName = PubNub.ngPrsEv(wagerChannel);
-
-      $rootScope.$on(wagerEventName, onWagerReceived); // eslint-disable-line
-      $rootScope.$on(allWagersEventName, onAllWagersReceived); // eslint-disable-line
-      $rootScope.$on(allResultsEventName, onAllResultsReceived); // eslint-disable-line
-      // $rootScope.$on(presenceEventName, onPresenceEvent); // eslint-disable-line
 
       ConfigService
         .getConfig()
         .then(function(res) {
-          PubNub.init({
+          userInfo = res.data.user;
+
+          return PubNub.init({
             'subscribe_key': res.data.pubNub.subscribeKey,
-            ssl: $location.protocol().indexOf('s') > -1
+            ssl: $location.protocol().indexOf('s') > -1,
+            uuid: userInfo.email
           });
-
-          PubNub.ngSubscribe({
-            channel: wagerChannel,
-            triggerEvents: ['callback']
-          });
-
-          PubNub.ngSubscribe({
+        })
+        .then(function(pnInstance) {
+          pnInstance.subscribe({
             channel: allWagersChannel,
-            triggerEvents: ['callback', 'presence']
+            message: onAllWagersReceived
           });
 
-          PubNub.ngSubscribe({
+          pnInstance.subscribe({
             channel: allResultsChannel,
-            triggerEvents: ['callback']
+            message: onAllResultsReceived,
+            presence: onSyncPresenceEvent
+          });
+
+          pnInstance.subscribe({
+            channel: wagerChannel,
+            message: onWagerReceived,
+            presence: onPresenceEvent,
+            state: userInfo
+          });
+
+          return pnInstance;
+        })
+        .then(function(pnInstance) {
+          pnInstance.here_now({
+            channel: wagerChannel,
+            state: true,
+            callback: onHereNow
           });
         })
         ;
 
-      function onWagerReceived(ngEvent, message /* , envelope, channel*/) {
+      function onWagerReceived(event, message /* , envelope, channel*/) {
         $timeout(function() {
           upsertWager(message.message);
         });
       }
 
-      function onAllWagersReceived(ngEvent, message /* , envelope, channel*/) {
+      function onAllWagersReceived(event, message /* , envelope, channel*/) {
         $timeout(function() {
           upsertWagers(message.message);
         });
       }
 
-      function onAllResultsReceived(ngEvent, message /* , envelope, channel*/) {
+      function onAllResultsReceived(event, message /* , envelope, channel*/) {
         $timeout(function() {
           upsertResults(message.message);
         });
       }
 
-      // function onPresenceEvent(ngEvent, presenceEvent /* , envelope, channel*/) {
-      //   $timeout(function() {
-      //     // apply presence event (join|leave) on users list
-      //     handlePresenceEvent(presenceEvent);
-      //   });
-      // }
+      function onPresenceEvent(event, presenceEvent /* , envelope, channel*/) {
+        $timeout(function() {
+          // apply presence event (join|leave) on users list
+          handlePresenceEvent(event);
+        });
+      }
+
+      function onSyncPresenceEvent(event, presenceEvent /* , envelope, channel*/) {
+        $timeout(function() {
+          // apply presence event (join|leave) on users list
+          handleSyncPresenceEvent(event);
+        });
+      }
+
+      function onHereNow(data) {
+        $timeout(function() {
+          console.debug('Active channel presences...', data); // eslint-disable-line
+
+          data.uuids.forEach(function(id) {
+            onUserJoin(id.state);
+          });
+        });
+      }
     }
 
-    // function handlePresenceEvent(ev) {
-    //   console.info('Presence event', ev); // eslint-disable-line
-    // }
+    function handlePresenceEvent(ev) {
+      // console.info('Event', ev); // eslint-disable-line
+      // console.debug('Presence event', presenceEvent); // eslint-disable-line
+
+      if (!ev.action || !ev.data) {
+        return; // Do nothing
+      }
+
+      switch (ev.action) {
+        case 'join':
+          console.debug('User joined....', ev.data); // eslint-disable-line
+
+          onUserJoin(ev.data);
+          break;
+        case 'leave':
+        case 'timeout':
+          console.debug('User timed out....', ev.data); // eslint-disable-line
+
+          onUserLeave(ev.data);
+          break;
+        default:
+          break;
+      }
+    }
+
+    function onUserJoin(user) {
+      let foundPresence = null;
+
+      if (!user || user.email === userInfo.email) {
+        return;
+      }
+
+      foundPresence = angular.copy(vm.presences).find(function(p) {
+        return p.email === user.email;
+      });
+
+      if (!foundPresence) {
+        vm.presences.push(user);
+      }
+      else {
+        return;
+      }
+    }
+
+    function onUserLeave(user) {
+      vm.presences = vm.presences.filter(function(p) {
+        return p.email === user.email;
+      });
+    }
+
+    function handleSyncPresenceEvent(ev) {
+      // console.info('Event', ev); // eslint-disable-line
+      // console.debug('Presence event', presenceEvent); // eslint-disable-line
+
+      if (!ev.action || !ev.data) {
+        return; // Do nothing
+      }
+
+      switch (ev.action) {
+        case 'join':
+          console.debug('Sync user joined....', ev.data); // eslint-disable-line
+
+          onUserSyncJoin(ev.data);
+          break;
+        case 'leave':
+        case 'timeout':
+          console.debug('Sync user timed out....', ev.data); // eslint-disable-line
+
+          onUserSyncLeave(ev.data);
+          break;
+        default:
+          break;
+      }
+    }
+
+    function onUserSyncJoin(user) {
+      let foundPresence = null;
+
+      if (!user || user.email === userInfo.email) {
+        return;
+      }
+
+      foundPresence = angular.copy(vm.presences).find(function(p) {
+        return p.email === user.email;
+      });
+
+      if (!foundPresence) {
+        user.isSyncing = true;
+
+        onUserJoin(user);
+      }
+      else {
+        vm.presences = vm.presences.map(function(p) {
+          if (p.email === user.email) {
+            p.isSyncing = true;
+          }
+
+          return p;
+        });
+      }
+    }
+
+    function onUserSyncLeave(user) {
+      vm.presences = vm.presences.map(function(p) {
+        if (p.email === user.email) {
+          p.isSyncing = false;
+        }
+
+        return p;
+      });
+    }
   }
 })();
