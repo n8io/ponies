@@ -193,13 +193,13 @@
 
       function onAllWagersReceived(event, message /* , envelope, channel*/) {
         $timeout(function() {
-          upsertWagers(message.message);
+          upsertWagers(message[0][0]);
         });
       }
 
       function onAllResultsReceived(event, message /* , envelope, channel*/) {
         $timeout(function() {
-          upsertResults(message.message);
+          upsertResults(message[0][0]);
         });
       }
 
