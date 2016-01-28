@@ -9,12 +9,14 @@ module.exports = function(gulp, plugins, cfg) {
       .pipe(plugins.babel())
       .pipe(plugins.ngAnnotate(cfg.js.client.ngAnnotate))
       .pipe(plugins.if(// Beautify or mangle
-        cfg.env === localEnv,
+        // cfg.env === localEnv,
+        true,
         plugins.jsbeautifier(cfg.js.client.jsbeautifier),
         plugins.uglify(cfg.js.client.uglify)
       ))
       .pipe(plugins.if(// Strip console.* and debugger statements
-        cfg.env !== localEnv,
+        // cfg.env !== localEnv,
+        false,
         plugins.stripDebug()
       ))
       .pipe(plugins.header(cfg.js.client.banner.formatStr, cfg.start)) // Add timestamp to banner
