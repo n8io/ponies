@@ -11,7 +11,7 @@ function routeHandler(app, auth) {
     .get('/', getRoot)
     ;
 
-  app.use('/bookmark', auth.loginRequired, router);
+  app.use('/bookmark', auth.groupsRequired(['users']), router);
 }
 
 function getRoot(req, res) {

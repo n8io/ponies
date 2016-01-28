@@ -10,7 +10,7 @@ function routeHandler(app, auth) {
     .get('/ng', getConfig)
     ;
 
-  app.use('/api/config', auth.loginRequired, router);
+  app.use('/api/config', auth.groupsRequired(['users']), router);
 
   function getConfig(req, res) {
     const cfg = {

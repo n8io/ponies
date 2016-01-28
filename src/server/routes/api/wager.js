@@ -2,7 +2,7 @@ const express = require('express');
 
 module.exports = routeHandler;
 
-function routeHandler(app /* , auth */) {
+function routeHandler(app, auth) {
   const router = express.Router();
 
   router
@@ -10,7 +10,7 @@ function routeHandler(app /* , auth */) {
     .post('/', setWagerData)
     ;
 
-  app.use('/api/wager', router);
+  app.use('/api/wager', auth.groupsRequired(['users']), router);
 
   function getWager(req, res) {
     const wager = parseWager(req.query);

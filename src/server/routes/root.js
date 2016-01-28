@@ -11,7 +11,7 @@ function routeHandler(app, auth) {
     .get('/', getRoot)
     ;
 
-  app.use('/', auth.loginRequired, router);
+  app.use('/', auth.groupsRequired(['users']), router);
 }
 
 function getRoot(req, res) {
