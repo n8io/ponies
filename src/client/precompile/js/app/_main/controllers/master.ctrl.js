@@ -143,6 +143,7 @@
       const wagerChannel = EnumService.PUBNUB.CHANNELS.WAGER;
       const allWagersChannel = EnumService.PUBNUB.CHANNELS.ALL_WAGERS;
       const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
+      const syncChannel = EnumService.PUBNUB.CHANNELS.SYNC;
 
       ConfigService
         .getConfig()
@@ -158,8 +159,7 @@
         .then(function(pnInstance) {
           pnInstance.subscribe({
             channel: allWagersChannel,
-            message: onAllWagersReceived,
-            presence: onSyncPresenceEvent
+            message: onAllWagersReceived
           });
 
           pnInstance.subscribe({
@@ -174,13 +174,19 @@
             state: userInfo
           });
 
-          return pnInstance;
-        })
-        .then(function(pnInstance) {
           pnInstance.here_now({
             channel: wagerChannel,
             state: true,
             callback: onHereNow
+          });
+
+          return pnInstance;
+        })
+        .then(function(pnInstance) {
+          pnInstance.subscribe({
+            channel: syncChannel,
+            message: angular.noop,
+            presence: onSyncPresenceEvent
           });
         })
         ;
@@ -219,7 +225,7 @@
 
       function onHereNow(data) {
         $timeout(function() {
-          console.debug('User in channel...', data); // eslint-disable-line
+          console.debug('Users in wager channel...', data); // eslint-disable-line
 
           data.uuids.forEach(function(id) {
             onUserJoin(id.state);
@@ -238,13 +244,13 @@
 
       switch (ev.action) {
         case 'join':
-          console.debug('User joined....', ev.data); // eslint-disable-line
+          console.debug('User joined wager channel....', ev.data); // eslint-disable-line
 
           onUserJoin(ev.data);
           break;
         case 'leave':
         case 'timeout':
-          console.debug('User timed out....', ev.data); // eslint-disable-line
+          console.debug('User left wager channel....', ev.data); // eslint-disable-line
 
           onUserLeave(ev.data);
           break;
@@ -288,13 +294,13 @@
 
       switch (ev.action) {
         case 'join':
-          console.debug('Sync user joined....', ev.data); // eslint-disable-line
+          console.debug('User joined sync channel....', ev.data); // eslint-disable-line
 
           onUserSyncJoin(ev.data);
           break;
         case 'leave':
         case 'timeout':
-          console.debug('Sync user left or timed out....', ev.data); // eslint-disable-line
+          console.debug('User left sync channel....', ev.data); // eslint-disable-line
 
           onUserSyncLeave(ev.data);
           break;

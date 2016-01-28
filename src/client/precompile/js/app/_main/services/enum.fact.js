@@ -19,7 +19,8 @@
         CHANNELS: {
           WAGER: 'wager',
           ALL_WAGERS: 'wagers-all',
-          ALL_RESULTS: 'results-all'
+          ALL_RESULTS: 'results-all',
+          SYNC: 'sync'
         }
       }
     };
