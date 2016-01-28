@@ -5,7 +5,7 @@ module.exports = function(app) {
     website: true,
     web: {
       register: {
-        enabled: false
+        enabled: true
       }
     }
   }));
