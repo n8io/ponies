@@ -306,7 +306,7 @@
       clearTimeout(window.__nowRefreshRaceResults);
 
       PubNub.unsubscribe({
-        channel: WAGER_ALL_CHANNEL
+        channel: WAGER_DIFF_CHANNEL
       });
 
       window.n8.hasSyncedBefore = false;
@@ -320,7 +320,7 @@
     var twoMinutes = 1000 * 60 * 2;
 
     PubNub.subscribe({
-      channel: WAGER_ALL_CHANNEL,
+      channel: WAGER_DIFF_CHANNEL,
       'subscribe_key': '{{pubsub_subscribe_key}}',
       message: function() {},
       state: {

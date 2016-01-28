@@ -9,7 +9,7 @@
     ;
 
   /* @ngInject */
-  function masterController($timeout, $location, $rootScope, $mdToast, EnumService, ConfigService, PubNub) {
+  function masterController($timeout, $location, $rootScope, ngNotify, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
@@ -185,21 +185,21 @@
         })
         ;
 
-      function onWagerReceived(event, message /* , envelope, channel*/) {
+      function onWagerReceived(wager) {
         $timeout(function() {
-          upsertWager(message.message);
+          upsertWager(wager);
         });
       }
 
-      function onAllWagersReceived(event, message /* , envelope, channel*/) {
+      function onAllWagersReceived(wagers) {
         $timeout(function() {
-          upsertWagers(message[0][0]);
+          upsertWagers(wagers);
         });
       }
 
-      function onAllResultsReceived(event, message /* , envelope, channel*/) {
+      function onAllResultsReceived(results) {
         $timeout(function() {
-          upsertResults(message[0][0]);
+          upsertResults(results);
         });
       }
 
@@ -310,13 +310,7 @@
         return;
       }
       else if (user.email === userInfo.email) {
-        // Me just turned on syncing
-        $mdToast
-          .simple()
-          .textContent('Sync ON')
-          .position({bottom: true, left: true})
-          .hideDelay(2000)
-          ;
+        ngNotify.set('Syncing has been enabled', 'success');
 
         return;
       }
@@ -342,14 +336,8 @@
     }
 
     function onUserSyncLeave(user) {
-      if (user.email === userInfo.email) {
-        // Me just turned on syncing
-        $mdToast
-          .simple()
-          .textContent('Sync OFF')
-          .position({bottom: true, left: true})
-          .hideDelay(2000)
-          ;
+      if (user && user.email === userInfo.email) {
+        ngNotify.set('Syncing has been disabled', 'error');
 
         return;
       }
