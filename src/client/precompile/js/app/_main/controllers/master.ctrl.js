@@ -279,7 +279,7 @@
     function onUserJoin(user) {
       let foundPresence = null;
 
-      if (!user || user.email === userInfo.email) {
+      if (!isUserValid(user) || user.email === userInfo.email) {
         return;
       }
 
@@ -327,7 +327,7 @@
     function onUserSyncToggle(user) {
       let foundPresence = null;
 
-      if (!user) {
+      if (!isUserValid(user)) {
         return;
       }
       else if (user.email === userInfo.email) {
@@ -361,6 +361,19 @@
           return p;
         });
       }
+    }
+
+    function isUserValid(user) {
+      const isValid = true;
+
+      if (!user) {
+        return false;
+      }
+      else if (!user.email || !user.givenName || !user.surname) {
+        return false;
+      }
+
+      return isValid;
     }
   }
 })();
