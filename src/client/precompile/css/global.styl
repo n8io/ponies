@@ -202,7 +202,7 @@ a.bookmarklet
   border-radius 3px
   border-bottom none !important
 .presence-container
-  position absolute
+  position fixed
   bottom 0
   right 0
   left 0
@@ -218,3 +218,16 @@ a.bookmarklet
       background-color #ddd
     &.syncing:after
       background-color green
+.i-m-syncing
+  position fixed
+  bottom 0
+  left 0
+  right 0
+  margin 0
+  padding 0
+  height 3px
+  background-color #ddd
+  &.yes
+    background-color green
+  &.no
+    background-color red

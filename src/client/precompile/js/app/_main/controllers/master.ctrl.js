@@ -13,7 +13,7 @@
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
-
+    vm.iAmSyncing = -1;
     vm.winnningWagers = winnningWagers;
     vm.presences = [];
 
@@ -318,6 +318,8 @@
       else if (user.email === userInfo.email) {
         ngNotify.set('Syncing has been enabled', 'success');
 
+        vm.iAmSyncing = true;
+
         return;
       }
 
@@ -344,6 +346,8 @@
     function onUserSyncLeave(user) {
       if (user && user.email === userInfo.email) {
         ngNotify.set('Syncing has been disabled', 'error');
+
+        vm.iAmSyncing = false;
 
         return;
       }

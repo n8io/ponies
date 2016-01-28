@@ -310,6 +310,8 @@
         channel: WAGER_SYNC_CHANNEL
       });
 
+      console.debug('Now unsubscribed from ' + WAGER_SYNC_CHANNEL + ' channel.');
+
       window.n8.hasSyncedBefore = false;
 
       return;
@@ -323,7 +325,9 @@
     PubNub.subscribe({
       channel: WAGER_SYNC_CHANNEL,
       'subscribe_key': '{{pubsub_subscribe_key}}',
-      message: function() {},
+      message: function() {
+        console.debug('Now subscribed to ' + WAGER_SYNC_CHANNEL + ' channel.');
+      },
       state: {
         email: window.n8.user.email,
         firstName: window.n8.user.firstName,

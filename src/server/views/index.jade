@@ -51,3 +51,4 @@ append body-content
   .presence-container
     .presence(data-ng-repeat='presence in mc.presences', data-ng-class='{syncing: presence.isSyncing}')
       gravatar(email='presence.email', size='50', round, title='{{presence.givenName + " " + presence.surname + " is " + (presence.isSyncing ? "" : "not ") + "syncing"}}', default='http://google.com/broken-image.jpg', letter='presence.givenName')
+  .i-m-syncing(data-ng-hide='mc.iAmSyncing == -1', data-ng-class='{no: !mc.iAmSyncing, yes: mc.iAmSyncing}')
