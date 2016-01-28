@@ -4,11 +4,12 @@ md-toolbar(layout='row')
       md-button(href='/')
         .float-left(style='height:25px;width:30px;').position-relative
           img(src='//33.media.tumblr.com/avatar_154b6d113290_128.png').logo
-        .float-left #{title}
+        .float-left.hide-xs #{title}
         .clearfix
     span(flex)
     - if (!user)
       md-button(href='/admin', aria-label='Log In') Log In
     - else
-      md-button(href='/logout', aria-label='Log Out') Log Out #{user.givenName}
+      span.welcome Hi #{user.givenName}
+      md-button(href='/logout', aria-label='Log Out') Log Out
 
