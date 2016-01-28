@@ -188,6 +188,12 @@
             message: angular.noop,
             presence: onSyncPresenceEvent
           });
+
+          pnInstance.here_now({
+            channel: syncChannel,
+            state: true,
+            callback: onHereNowSync
+          });
         })
         ;
 
@@ -229,6 +235,16 @@
 
           data.uuids.forEach(function(id) {
             onUserJoin(id.state);
+          });
+        });
+      }
+
+      function onHereNowSync(data) {
+        $timeout(function() {
+          console.debug('Users in sync channel...', data); // eslint-disable-line
+
+          data.uuids.forEach(function(id) {
+            onUserSyncToggle(id.state);
           });
         });
       }
@@ -294,31 +310,34 @@
 
       switch (ev.action) {
         case 'join':
-          console.debug('User joined sync channel....', ev.data); // eslint-disable-line
-
-          onUserSyncJoin(ev.data);
-          break;
         case 'leave':
         case 'timeout':
-          console.debug('User left sync channel....', ev.data); // eslint-disable-line
+          break;
+        case 'state-change':
+          console.debug('State-change detected...', ev.data); // eslint-disable-line
 
-          onUserSyncLeave(ev.data);
+          onUserSyncToggle(ev.data);
           break;
         default:
           break;
       }
     }
 
-    function onUserSyncJoin(user) {
+    function onUserSyncToggle(user) {
       let foundPresence = null;
 
       if (!user) {
         return;
       }
       else if (user.email === userInfo.email) {
-        ngNotify.set('Syncing has been enabled', 'success');
+        if (user.isSyncing) {
+          ngNotify.set('Syncing has been enabled', 'success');
+        }
+        else {
+          ngNotify.set('Syncing has been disabled', 'error');
+        }
 
-        vm.iAmSyncing = true;
+        vm.iAmSyncing = !!user.isSyncing;
 
         return;
       }
@@ -333,32 +352,14 @@
         onUserJoin(user);
       }
       else {
-        vm.presences = vm.presences.map(function(p) {
+        vm.presences = angular.copy(vm.presences).map(function(p) {
           if (p.email === user.email) {
-            p.isSyncing = true;
+            p.isSyncing = user.isSyncing;
           }
 
           return p;
         });
       }
-    }
-
-    function onUserSyncLeave(user) {
-      if (user && user.email === userInfo.email) {
-        ngNotify.set('Syncing has been disabled', 'error');
-
-        vm.iAmSyncing = false;
-
-        return;
-      }
-
-      vm.presences = vm.presences.map(function(p) {
-        if (p.email === user.email) {
-          p.isSyncing = false;
-        }
-
-        return p;
-      });
     }
   }
 })();

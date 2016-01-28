@@ -107,6 +107,17 @@
         ssl: true
       });
     }, 1000);
+
+    setTimeout(function() {
+      window.PubNub.subscribe({
+        channel: WAGER_SYNC_CHANNEL,
+        'subscribe_key': '{{pubsub_subscribe_key}}',
+        message: function() {},
+        state: getUserState()
+      });
+
+      console.debug('Now subscribed to ' + WAGER_SYNC_CHANNEL + ' channel.');
+    }, 1500);
   }
 
   function initializePoolTypes() {
@@ -270,6 +281,15 @@
     return {};
   }
 
+  function getUserState() {
+    return {
+      email: window.n8.user.email,
+      firstName: window.n8.user.firstName,
+      lastName: window.n8.user.lastName,
+      isSyncing: window.n8.isSyncing
+    };
+  }
+
   function readCookie(name) {
 
     return (name = new RegExp('(?:^|;\\s*)' + ('' + name).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '=([^;]*)').exec(document.cookie)) && name[1];
@@ -306,34 +326,33 @@
       clearTimeout(window.__nowAllWagers);
       clearTimeout(window.__nowRefreshRaceResults);
 
-      PubNub.unsubscribe({
-        channel: WAGER_SYNC_CHANNEL
+      PubNub.state({
+        channel: WAGER_SYNC_CHANNEL,
+        state: getUserState(),
+        callback: function() {
+          console.debug('Stopped syncing.')
+        },
+        error: function() {}
       });
-
-      console.debug('Now unsubscribed from ' + WAGER_SYNC_CHANNEL + ' channel.');
 
       window.n8.hasSyncedBefore = false;
 
       return;
     }
 
+    PubNub.state({
+      channel: WAGER_SYNC_CHANNEL,
+      state: getUserState(),
+      callback: function() {
+        console.debug('Started syncing.')
+      },
+      error: function() {}
+    });
+
     var threeSeconds = 1000 * 3;
     var fiveSeconds = 1000 * 5;
     var thirtySeconds = 1000 * 30;
     var twoMinutes = 1000 * 60 * 2;
-
-    PubNub.subscribe({
-      channel: WAGER_SYNC_CHANNEL,
-      'subscribe_key': '{{pubsub_subscribe_key}}',
-      message: function() {
-        console.debug('Now subscribed to ' + WAGER_SYNC_CHANNEL + ' channel.');
-      },
-      state: {
-        email: window.n8.user.email,
-        firstName: window.n8.user.firstName,
-        lastName: window.n8.user.lastName
-      }
-    });
 
     window.__wagerInterval = setInterval(diffWagers, threeSeconds);
     window.__allWagersInterval = setInterval(allWagers, twoMinutes);
