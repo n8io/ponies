@@ -219,7 +219,7 @@
 
       function onHereNow(data) {
         $timeout(function() {
-          console.debug('Active channel presences...', data); // eslint-disable-line
+          console.debug('User in channel...', data); // eslint-disable-line
 
           data.uuids.forEach(function(id) {
             onUserJoin(id.state);
