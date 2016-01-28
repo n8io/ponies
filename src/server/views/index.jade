@@ -40,7 +40,7 @@ append body-content
                                   i.fa.fa-angle-double-up
                           tr(data-ng-repeat='wager in race.wagers | orderBy:"timestamp"', data-ng-hide='race.hide')
                             td.wager(data-ng-class='{ complete: race.result, pending: wager.status == "PENDING", placed: wager.status == "PLACED", canceled: wager.status == "CANCELED", win: wager.payoutAmount > 0 && race.result && wager.status == "PAID", lost: wager.payoutAmount == 0 && race.result && wager.status == "PAID" }')
-                              gravatar(email='wager.email', size='20', round, title='{{wager.user.firstName + " " + wager.user.lastName}}').valign-mid
+                              gravatar(email='wager.user.email', size='20', round, title='{{wager.user.firstName + " " + wager.user.lastName + " is connected"}}').valign-mid
                               span.lh-20 &nbsp; {{wager.type.Name}} - {{wager.selections}}&nbsp;
                               span(data-ng-show='wager.payoutAmount == 0') {{wager.amount | currency:'$':2}}
                               span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
@@ -50,4 +50,4 @@ append body-content
       pre.code {{mc.tracks | json}}
   .presence-container
     .presence(data-ng-repeat='presence in mc.presences', data-ng-class='{syncing: presence.isSyncing}')
-      gravatar(email='presence.email', size='50', round, title='{{presence.givenName + " " + presence.surname}}', default='http://google.com/broken-image.jpg', letter='presence.givenName')
+      gravatar(email='presence.email', size='50', round, title='{{presence.givenName + " " + presence.surname + " is " + (presence.isSyncing ? "" : "not ") + "syncing"}}', default='http://google.com/broken-image.jpg', letter='presence.givenName')

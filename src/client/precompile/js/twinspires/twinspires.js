@@ -324,7 +324,9 @@
       'subscribe_key': '{{pubsub_subscribe_key}}',
       message: function() {},
       state: {
-        user: window.n8.user
+        email: window.n8.user.email,
+        firstName: window.n8.user.firstName,
+        lastName: window.n8.user.lastName
       }
     });
 

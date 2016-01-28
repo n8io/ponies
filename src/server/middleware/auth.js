@@ -5,17 +5,7 @@ module.exports = function(app) {
     website: true,
     web: {
       register: {
-        enabled: true,
-        fields: {
-          'twinspires_account': {
-            enabled: true,
-            label: 'TwinSpires Account',
-            name: 'twinspires_account',
-            placeholder: 'E.g. 200012345',
-            required: true,
-            type: 'text'
-          }
-        }
+        enabled: false
       }
     }
   }));
