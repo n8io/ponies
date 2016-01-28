@@ -9,7 +9,7 @@
     ;
 
   /* @ngInject */
-  function masterController($timeout, $location, $rootScope, EnumService, ConfigService, PubNub) {
+  function masterController($timeout, $location, $rootScope, $mdToast, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
@@ -279,7 +279,7 @@
     }
 
     function handleSyncPresenceEvent(ev) {
-      console.info('Sync presence event received...', ev); // eslint-disable-line
+      // console.info('Sync presence event received...', ev); // eslint-disable-line
       // console.debug('Presence event', presenceEvent); // eslint-disable-line
 
       if (!ev.action || !ev.data) {
@@ -294,7 +294,7 @@
           break;
         case 'leave':
         case 'timeout':
-          console.debug('Sync user timed out....', ev.data); // eslint-disable-line
+          console.debug('Sync user left or timed out....', ev.data); // eslint-disable-line
 
           onUserSyncLeave(ev.data);
           break;
@@ -306,7 +306,18 @@
     function onUserSyncJoin(user) {
       let foundPresence = null;
 
-      if (!user || user.email === userInfo.email) {
+      if (!user) {
+        return;
+      }
+      else if (user.email === userInfo.email) {
+        // Me just turned on syncing
+        $mdToast
+          .simple()
+          .textContent('Sync ON')
+          .position({bottom: true, left: true})
+          .hideDelay(2000)
+          ;
+
         return;
       }
 
@@ -331,6 +342,18 @@
     }
 
     function onUserSyncLeave(user) {
+      if (user.email === userInfo.email) {
+        // Me just turned on syncing
+        $mdToast
+          .simple()
+          .textContent('Sync OFF')
+          .position({bottom: true, left: true})
+          .hideDelay(2000)
+          ;
+
+        return;
+      }
+
       vm.presences = vm.presences.map(function(p) {
         if (p.email === user.email) {
           p.isSyncing = false;
