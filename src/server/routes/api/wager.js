@@ -10,7 +10,7 @@ function routeHandler(app, auth) {
     .post('/', setWagerData)
     ;
 
-  app.use('/api/wager', auth.groupsRequired(['users']), router);
+  app.use('/api/wager', auth.groupsRequired(['admin', 'user'], false), router);
 
   function getWager(req, res) {
     const wager = parseWager(req.query);
