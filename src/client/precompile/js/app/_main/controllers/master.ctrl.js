@@ -171,7 +171,8 @@
             channel: wagerChannel,
             message: onWagerReceived,
             presence: onPresenceEvent,
-            state: userInfo
+            state: userInfo,
+            heartbeat: 120 // 120 seconds
           });
 
           pnInstance.here_now({
@@ -296,7 +297,7 @@
 
     function onUserLeave(user) {
       vm.presences = vm.presences.filter(function(p) {
-        return p.email === user.email;
+        return p.email !== user.email;
       });
     }
 
