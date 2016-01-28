@@ -322,6 +322,7 @@
     PubNub.subscribe({
       channel: WAGER_ALL_CHANNEL,
       'subscribe_key': '{{pubsub_subscribe_key}}',
+      message: function() {},
       state: {
         user: window.n8.user
       }
