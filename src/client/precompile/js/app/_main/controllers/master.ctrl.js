@@ -158,13 +158,13 @@
         .then(function(pnInstance) {
           pnInstance.subscribe({
             channel: allWagersChannel,
-            message: onAllWagersReceived
+            message: onAllWagersReceived,
+            presence: onSyncPresenceEvent
           });
 
           pnInstance.subscribe({
             channel: allResultsChannel,
-            message: onAllResultsReceived,
-            presence: onSyncPresenceEvent
+            message: onAllResultsReceived
           });
 
           pnInstance.subscribe({
@@ -279,7 +279,7 @@
     }
 
     function handleSyncPresenceEvent(ev) {
-      // console.info('Event', ev); // eslint-disable-line
+      console.info('Sync presence event received...', ev); // eslint-disable-line
       // console.debug('Presence event', presenceEvent); // eslint-disable-line
 
       if (!ev.action || !ev.data) {

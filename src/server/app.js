@@ -9,15 +9,6 @@ const logger = require('./helpers/logger')();
 const port = process.env.PORT;
 const host = process.env.HOST;
 
-app.use(stormpath.init(app, {
-  website: true,
-  web: {
-    register: {
-      enabled: false
-    }
-  }
-}));
-
 require('./middleware')(app);
 require('./routes')(app, stormpath);
 

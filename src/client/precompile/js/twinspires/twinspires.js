@@ -437,7 +437,7 @@
 
       newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // Wager dates are local to America/Los_Angeles
       newWager.id = w.serialNumber;
-      newWager.user = _.pick(window.n8.user, ['email', 'firstName', 'lastName']);
+      newWager.user = _.pick(window.n8.user, ['email', 'firstName', 'lastName', 'accountNum']);
       newWager.betAmount = parseFloat(w.totalCost, 10);
       newWager.payoutAmount = parseFloat(w.payoutAmount, 10);
       newWager.type = window.n8.poolTypes.find(function(pt) { return pt.Code === w.poolType; });
