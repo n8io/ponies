@@ -25,7 +25,7 @@
     initalizeTracks();
     refreshControlData();
 
-    setTimeout(toggleSync, 3000);
+    setTimeout(toggleSync, 4000);
   }
 
   function clearConsole() {
