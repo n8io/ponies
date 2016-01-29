@@ -18,7 +18,7 @@ append body-content
                 tbody
                   tr(data-ng-click='track.hide = !track.hide').cursor-pointer
                     td.track
-                      .float-left.mgn-right-7 {{track.DisplayName}} {{mc.trackSortOrder(track)}}
+                      .float-left.mgn-right-7 {{track.DisplayName}}
                       .float-left(data-ng-show='track.mtp.id == 99').finished FINISHED
                       .float-left(data-ng-show='track.mtp.id == 1 && track.mtp.mtp == 99').not-started NOT STARTED
                       .float-right
