@@ -15,7 +15,10 @@ script(src='/statics/bower_components/pubnub-angular/lib/pubnub-angular.js', id=
 script(src='//cdn.jsdelivr.net/angular.ng-notify/0.7.1/ng-notify.min.js', id='js-ng-notify')
 script(src='//cdnjs.cloudflare.com/ajax/libs/d3/3.5.13/d3.min.js', id='js-d3')
 
-script(src='/js/script.min.js', id='js-custom')
+if locals.debug
+  script(src='/js/script.js', id='js-custom')
+else
+  script(src='/js/script.min.js', id='js-custom')
 
 //- Add livereload to help in local development only
 if !!!((process.env.NODE_ENV || 'local').toLowerCase().indexOf('local'))

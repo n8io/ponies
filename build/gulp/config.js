@@ -103,6 +103,7 @@ const cfg = {
       ],
       dest: path.join(distDir, 'js'),
       filename: 'script.min.js',
+      filenameDebug: 'script.js',
       jsbeautifier: {
         config: cwd('.jsbeautifyrc')
       },

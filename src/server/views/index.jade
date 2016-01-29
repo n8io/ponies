@@ -46,7 +46,7 @@ append body-content
                               span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
                               .float-right
                                 wager-timestamp(wager='wager')
-    - if (process.env.NODE_ENV == 'local')
+    if (locals.debug)
       pre.code {{mc.tracks | json}}
   .presence-container
     .presence(data-ng-repeat='presence in mc.presences', data-ng-class='{syncing: presence.isSyncing}')

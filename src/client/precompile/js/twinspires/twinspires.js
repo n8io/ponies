@@ -581,7 +581,8 @@
       });
 
       data.races.push(race);
-    })
+    });
+
 
     return data;
   }

@@ -369,7 +369,7 @@
       if (!user) {
         return false;
       }
-      else if (!user.email || !user.givenName || !user.surname) {
+      else if (!user.email || (!(user.givenName && user.surname) && !(user.firstName && user.lastName))) {
         return false;
       }
 
