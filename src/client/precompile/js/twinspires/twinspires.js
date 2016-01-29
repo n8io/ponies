@@ -24,8 +24,22 @@
     initializePoolTypes();
     initalizeTracks();
     refreshControlData();
+    bindLeave();
 
     setTimeout(toggleSync, 4000);
+  }
+
+  function bindLeave() {
+    $(window).bind('unload',function() {
+      window.n8.isSyncing = false;
+
+      window.PubNub.state({
+        channel: WAGER_SYNC_CHANNEL,
+        state: getUserState(),
+        callback: function() {},
+        error: function() {}
+      });
+    });
   }
 
   function clearConsole() {

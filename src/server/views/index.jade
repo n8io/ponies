@@ -36,7 +36,7 @@ append body-content
                                 .minutes(data-ng-show='track.mtp.mtp == -1', data-ng-class='track.mtp.level') OFF
                                 .minutes(data-ng-show='track.mtp.mtp >  -1 && track.mtp.mtp < 99', data-ng-class='track.mtp.level') MTP {{track.mtp.mtp}}
                                 .minutes(data-ng-show='track.mtp.mtp == 99', data-ng-class='track.mtp.level') NOT RUNNING
-                              .float-left(data-ng-repeat='ww in mc.winnningWagers(race)').winning-wager-icon
+                              .float-left(data-ng-show='race.hide', data-ng-repeat='ww in mc.winnningWagers(race)').winning-wager-icon
                               .float-right
                                 span(data-ng-show='race.hide')
                                   i.fa.fa-angle-double-down

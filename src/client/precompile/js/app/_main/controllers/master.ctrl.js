@@ -2,6 +2,7 @@
   'use strict';
 
   let userInfo;
+  let pn;
 
   angular
     .module('app.controllers')
@@ -18,6 +19,158 @@
     vm.presences = [];
 
     init();
+
+    function init() {
+      const wagerChannel = EnumService.PUBNUB.CHANNELS.WAGER;
+      const allWagersChannel = EnumService.PUBNUB.CHANNELS.ALL_WAGERS;
+      const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
+      const syncChannel = EnumService.PUBNUB.CHANNELS.SYNC;
+
+      ConfigService
+        .getConfig()
+        .then(function(res) {
+          userInfo = res.data.user;
+
+          return PubNub.init({
+            'subscribe_key': res.data.pubNub.subscribeKey,
+            ssl: $location.protocol().indexOf('s') > -1,
+            uuid: userInfo.email
+          });
+        })
+        .then(function(pnInstance) {
+          pn = pnInstance;
+
+          // Return history for playback
+          return new Promise(function(resolve, reject) {
+            pn.history({
+              channel: allWagersChannel,
+              count: 100,
+              callback: function(data) {
+                resolve(data[0][0]);
+              },
+              error: function(err) {
+                reject(err);
+              }
+            });
+          });
+        })
+        .then(function(wagerHistory) {
+          // TODO: Process wager history
+          console.debug('Past wagers loaded...', wagerHistory); // eslint-disable-line
+
+          onAllWagersReceived(wagerHistory);
+
+          // Get past results
+          return new Promise(function(resolve, reject) {
+            pn.history({
+              channel: allResultsChannel,
+              count: 50,
+              callback: function(data) {
+                resolve(data[0]);
+              },
+              error: function(err) {
+                reject(err);
+              }
+            });
+          });
+        })
+        .then(function(raceResultsHistory) {
+          // TODO: Process race results history
+          console.debug('Past race results loaded...', raceResultsHistory); // eslint-disable-line
+
+          raceResultsHistory.forEach(onAllResultsReceived);
+
+          pn.subscribe({
+            channel: allWagersChannel,
+            message: onAllWagersReceived
+          });
+
+          pn.subscribe({
+            channel: allResultsChannel,
+            message: onAllResultsReceived
+          });
+
+          pn.subscribe({
+            channel: wagerChannel,
+            message: onWagerReceived,
+            presence: onPresenceEvent,
+            state: userInfo,
+            heartbeat: 120 // seconds
+          });
+
+          pn.here_now({
+            channel: wagerChannel,
+            state: true,
+            callback: onHereNow
+          });
+        })
+        .then(function() {
+          pn.subscribe({
+            channel: syncChannel,
+            message: angular.noop,
+            presence: onSyncPresenceEvent
+          });
+
+          pn.here_now({
+            channel: syncChannel,
+            state: true,
+            callback: onHereNowSync
+          });
+        })
+        ;
+
+      function onWagerReceived(wager) {
+        $timeout(function() {
+          upsertWager(wager);
+        });
+      }
+
+      function onAllWagersReceived(wagers) {
+        $timeout(function() {
+          upsertWagers(wagers);
+        });
+      }
+
+      function onAllResultsReceived(results) {
+        $timeout(function() {
+          upsertResults(results);
+        });
+      }
+
+      function onPresenceEvent(event /* presenceEvent, envelope, channel*/) {
+        $timeout(function() {
+          // apply presence event (join|leave) on users list
+          handlePresenceEvent(event);
+        });
+      }
+
+      function onSyncPresenceEvent(event /* presenceEvent, envelope, channel*/) {
+        $timeout(function() {
+          // apply presence event (join|leave) on users list
+          handleSyncPresenceEvent(event);
+        });
+      }
+
+      function onHereNow(data) {
+        $timeout(function() {
+          console.debug('Users in wager channel...', data); // eslint-disable-line
+
+          data.uuids.forEach(function(id) {
+            onUserJoin(id.state);
+          });
+        });
+      }
+
+      function onHereNowSync(data) {
+        $timeout(function() {
+          console.debug('Users in sync channel...', data); // eslint-disable-line
+
+          data.uuids.forEach(function(id) {
+            onUserSyncToggle(id.state);
+          });
+        });
+      }
+    }
 
     function upsertWagers(wagers) {
       wagers.forEach(function(w) {
@@ -147,118 +300,6 @@
       });
 
       return winningWagers;
-    }
-
-    function init() {
-      const wagerChannel = EnumService.PUBNUB.CHANNELS.WAGER;
-      const allWagersChannel = EnumService.PUBNUB.CHANNELS.ALL_WAGERS;
-      const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
-      const syncChannel = EnumService.PUBNUB.CHANNELS.SYNC;
-
-      ConfigService
-        .getConfig()
-        .then(function(res) {
-          userInfo = res.data.user;
-
-          return PubNub.init({
-            'subscribe_key': res.data.pubNub.subscribeKey,
-            ssl: $location.protocol().indexOf('s') > -1,
-            uuid: userInfo.email
-          });
-        })
-        .then(function(pnInstance) {
-          pnInstance.subscribe({
-            channel: allWagersChannel,
-            message: onAllWagersReceived
-          });
-
-          pnInstance.subscribe({
-            channel: allResultsChannel,
-            message: onAllResultsReceived
-          });
-
-          pnInstance.subscribe({
-            channel: wagerChannel,
-            message: onWagerReceived,
-            presence: onPresenceEvent,
-            state: userInfo,
-            heartbeat: 120 // 120 seconds
-          });
-
-          pnInstance.here_now({
-            channel: wagerChannel,
-            state: true,
-            callback: onHereNow
-          });
-
-          return pnInstance;
-        })
-        .then(function(pnInstance) {
-          pnInstance.subscribe({
-            channel: syncChannel,
-            message: angular.noop,
-            presence: onSyncPresenceEvent
-          });
-
-          pnInstance.here_now({
-            channel: syncChannel,
-            state: true,
-            callback: onHereNowSync
-          });
-        })
-        ;
-
-      function onWagerReceived(wager) {
-        $timeout(function() {
-          upsertWager(wager);
-        });
-      }
-
-      function onAllWagersReceived(wagers) {
-        $timeout(function() {
-          upsertWagers(wagers);
-        });
-      }
-
-      function onAllResultsReceived(results) {
-        $timeout(function() {
-          upsertResults(results);
-        });
-      }
-
-      function onPresenceEvent(event /* presenceEvent, envelope, channel*/) {
-        $timeout(function() {
-          // apply presence event (join|leave) on users list
-          handlePresenceEvent(event);
-        });
-      }
-
-      function onSyncPresenceEvent(event /* presenceEvent, envelope, channel*/) {
-        $timeout(function() {
-          // apply presence event (join|leave) on users list
-          handleSyncPresenceEvent(event);
-        });
-      }
-
-      function onHereNow(data) {
-        $timeout(function() {
-          console.debug('Users in wager channel...', data); // eslint-disable-line
-
-          data.uuids.forEach(function(id) {
-            onUserJoin(id.state);
-          });
-        });
-      }
-
-      function onHereNowSync(data) {
-        $timeout(function() {
-          console.debug('Users in sync channel...', data); // eslint-disable-line
-
-          data.uuids.forEach(function(id) {
-            onUserSyncToggle(id.state);
-          });
-        });
-      }
     }
 
     function handlePresenceEvent(ev) {
