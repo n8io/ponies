@@ -175,6 +175,8 @@
     }
 
     console.debug('Refreshing race results...', tracks);
+    window.n8.mtps = getTrackMtps();
+
     tracks.forEach(function(tr) {
       var track = window.n8.tracks.find(function(t) { return t.BrisCode === tr; });
       callbackFns.push(function(cb) {
@@ -249,17 +251,23 @@
     }
   }
 
-  function getTracks() {
-    var $tracks = $('body').find('.clsTrackName');
+  function getTrackMtps() {
+    var $tracks = $('body').find('.clsTrackButton');
     var tracks = [];
 
     $tracks.each(function(index, t) {
       var $t = $(t);
       var track = {};
 
-      track.name = $t.text();
-      track.id = $t.attr('id').split('_')[1];
+      track.name = $t.attr('title');
+      track.BrisCode = $t.attr('id').split('_')[1];
       track.type = $t.attr('id').split('_')[2];
+      track.currentRace = {
+        id: parseInt($t.find('.clsRaceNum').text(), 0),
+        mtp: convertToMtp($t.find('.clsRaceMtp').text())
+      };
+
+      track.currentRace.level = convertMtpToLevel(track.currentRace.mtp);
 
       tracks.push(track);
     });
@@ -267,6 +275,46 @@
     window.tracks = tracks;
 
     return tracks;
+
+    function convertToMtp(text) {
+      text = text || '';
+
+      switch (text.toLowerCase()) {
+        case '99':
+          // Not started, races are not running
+          return 99;
+        case 'off':
+          // Race is currently being ran
+          return -1;
+        default:
+          return parseInt(text, 0);
+      }
+    }
+
+    function convertMtpToLevel(mtp) {
+      switch (mtp) {
+        case 99:
+          return 'NOT_RUNNING';
+        case -1:
+          return 'RUNNING';
+        default:
+          if (mtp === 0) {
+            return 'NOW';
+          }
+          else if (mtp >= 1 && mtp <= 2) {
+            return 'VERY_SOON';
+          }
+          else if (mtp > 2 && mtp <= 5) {
+            return 'SOON';
+          }
+          else if (mtp > 5 && mtp <= 7) {
+            return 'KINDA_SOON';
+          }
+          else if (mtp >= 8) {
+            return 'NOT_SOON'
+          }
+      }
+    }
   }
 
   function getUserInfo() {
@@ -396,6 +444,7 @@
     (results || []).forEach(function(result) {
       var track = {
         BrisCode: result.track.BrisCode,
+        mtp: result.track.mtp,
         races: []
       };
 
@@ -414,10 +463,6 @@
 
     if (tracks.length) {
       tracks.forEach(function(t) {
-        if (t.races.length === 0) {
-          return;
-        }
-
         console.debug('Pushing race results...', t);
         window.PubNub.publish({
           channel: RESULTS_BULK_CHANNEL,
@@ -515,6 +560,14 @@
       data.track = {
         BrisCode: track.BrisCode
       };
+
+      var foundMtp = window.n8.mtps.find(function(mtp) {
+        return mtp.BrisCode.toLowerCase() === data.track.BrisCode.toLowerCase();
+      });
+
+      if (foundMtp) {
+        data.track.mtp = foundMtp.currentRace;
+      }
 
       return callback(null, data);
     });

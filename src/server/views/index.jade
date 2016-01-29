@@ -12,7 +12,7 @@ append body-content
     .width-100pct(data-ng-show='mc.tracks.length > 0')
       table(cellspacing='0', cellpadding='0').width-100pct
         tbody
-          tr(data-ng-repeat='track in mc.tracks | orderBy:"timestamp":true')
+          tr(data-ng-repeat='track in mc.tracks | orderBy:["mtp.mtp", "name"]')
             td
               table(cellspacing='0', cellpadding='0').width-100pct.track
                 tbody
@@ -32,6 +32,10 @@ append body-content
                             td.race
                               .float-left Race {{race.id}}
                               .float-left(data-ng-show='race.result').race-result.mgn-right-7 {{race.result}}
+                              .float-left(data-ng-show='!race.result && race.id == track.mtp.id').race-mtp.mgn-right-7
+                                .minutes(data-ng-show='track.mtp.mtp == -1', data-ng-class='track.mtp.level') OFF
+                                .minutes(data-ng-show='track.mtp.mtp >  -1 && track.mtp.mtp < 99', data-ng-class='track.mtp.level') MTP {{track.mtp.mtp}}
+                                .minutes(data-ng-show='track.mtp.mtp == 99', data-ng-class='track.mtp.level') NOT RUNNING
                               .float-left(data-ng-repeat='ww in mc.winnningWagers(race)').winning-wager-icon
                               .float-right
                                 span(data-ng-show='race.hide')

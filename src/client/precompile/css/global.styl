@@ -112,7 +112,7 @@ td.wager
   &.paid
   &.pending
     font-weight normal
-    opacity .8
+    opacity .6
   &.placed
     background-color rgba(0, 123, 255, .05)
   &.canceled
@@ -235,3 +235,37 @@ a.bookmarklet
     background-color green
   &.no
     background-color red
+.race-mtp
+  margin-left 10px
+  .minutes
+    padding 1px 3px
+    border-radius 5px
+    font-size 80%
+    &.NOT_RUNNING
+      background-color darken(blue, 20%)
+      border 1px solid darken(blue, 30%)
+      color #fff
+    &.NOT_SOON
+      background-color blue
+      border 1px solid darken(blue, 10%)
+      color #fff
+    &.KINDA_SOON
+      background-color green
+      border 1px solid darken(green, 10%)
+      color #fff
+    &.SOON
+      background-color yellow
+      border 1px solid darken(yellow, 10%)
+      color #555
+    &.VERY_SOON
+      background-color orange
+      border 1px solid darken(orange, 10%)
+      color #fff
+    &.NOW
+      background-color red
+      border 1px solid darken(red, 10%)
+      color #fff
+    &.RUNNING
+      background-color darken(red, 20%)
+      color #fff
+      border 1px solid darken(red, 30%)

@@ -82,13 +82,23 @@
         return;
       }
 
+      track.mtp = result.mtp;
+
       (track.races || []).forEach(function(rc) {
         const race = result.races.find(function(r) {
           return rc.id === r.race;
         });
 
         if (race) {
-          rc.result = `${race.win.horse}/${race.place.horse}/${race.show.horse}`;
+          rc.result = `${race.win.horse}`;
+
+          if (race.place) {
+            rc.result += `/${race.place.horse}`;
+          }
+
+          if (race.show) {
+            rc.result += `/${race.show.horse}`;
+          }
         }
       });
     }
