@@ -6,6 +6,9 @@ body
 body.resolved
   opacity 1
 
+.bump-bottom
+  margin-bottom 0
+
 span.welcome
   font-size 80%
   text-transform uppercase
@@ -94,6 +97,18 @@ td.track
   &:active
     background-color lighten(#555, 10%)
     outline none !important
+  .not-started
+    font-size 80%
+    padding 3px
+    margin-left 10px
+    border-radius 3px
+    color #3197FF
+  .finished
+    font-size 80%
+    padding 3px
+    margin-left 10px
+    border-radius 3px
+    color #aaa
 td.race
   padding 5px
   padding-left 10px
@@ -121,6 +136,12 @@ td.wager
     background-color rgba(green, .05)
   &.lost
     background-color rgba(red, .05)
+    .amount
+      display inline
+      margin-left 5px
+      padding 2px 5px
+      color darken(red, 20%)
+      border-radius 3px
   &:hover
   &:focus
   &:active
@@ -210,18 +231,24 @@ a.bookmarklet
   bottom 0
   right 0
   left 0
-  .presence
+  .presence-wrapper
     float right
-    padding-right 10px
-    &:after
-      content ''
-      height 10px
-      width 10px
+    padding 5px 10px
+    background rgba(255, 255, 255, 0.5)
+    border-radius 5px
+    .presence
+      float right
+      margin-right 8px
       border-radius 5px
-      position absolute
-      background-color #ddd
-    &.syncing:after
-      background-color green
+      &:after
+        content ''
+        height 10px
+        width 10px
+        border-radius 5px
+        position absolute
+        background-color #ddd
+      &.syncing:after
+        background-color green
 .i-m-syncing
   position fixed
   bottom 0

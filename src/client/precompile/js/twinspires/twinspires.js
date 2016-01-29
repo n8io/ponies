@@ -237,8 +237,6 @@
           + '&authKey=' + window.n8.user.authKey
           + '&output=json'
           + '&limit=200'
-          + '&cb='
-          + (new Date()).getTime().toString()
           ;
 
         window.n8.wagerCreds.poolTypesUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Tote/PoolTypes?'
@@ -248,8 +246,6 @@
           + '&affid=' + wc.CDI_SAID
           + '&affiliateId=' + wc.CDI_SAID
           + '&output=json'
-          + '&cb='
-          + (new Date()).getTime().toString()
           ;
 
         window.n8.wagerCreds.trackListUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Cdi/TrackList?multisource=1&vidType=FLV'
@@ -258,8 +254,6 @@
           + '&ip=' + uc.CDI_CLIENT_IP
           + '&affid=' + uc.CDI_SAID
           + '&output=json'
-          + '&cb='
-          + (new Date()).getTime().toString()
           ;
       }
     }
@@ -276,10 +270,19 @@
       track.name = $t.attr('title');
       track.BrisCode = $t.attr('id').split('_')[1];
       track.type = $t.attr('id').split('_')[2];
-      track.currentRace = {
-        id: parseInt($t.find('.clsRaceNum').text(), 0),
-        mtp: convertToMtp($t.find('.clsRaceMtp').text())
-      };
+
+      if($t.find('[id^="finish_"]:visible').length) {
+        track.currentRace = {
+          id: 99,
+          mtp: 99
+        }
+      }
+      else {
+        track.currentRace = {
+          id: parseInt($t.find('.clsRaceNum').text(), 0),
+          mtp: convertToMtp($t.find('.clsRaceMtp').text())
+        };
+      }
 
       track.currentRace.level = convertMtpToLevel(track.currentRace.mtp);
 
@@ -425,13 +428,17 @@
     window.__nowRefreshRaceResults = setTimeout(refreshRaceResults, fiveSeconds);
 
     function diffWagers() {
-      $.getJSON(window.n8.wagerCreds.wagersUrl, function(data) {
+      var cb = '&cb=' + (new Date()).getTime();
+
+      $.getJSON(window.n8.wagerCreds.wagersUrl + cb, function(data) {
         onWagersReturned(data);
       });
     }
 
     function allWagers() {
-      $.getJSON(window.n8.wagerCreds.wagersUrl, function(data) {
+      var cb = '&cb=' + (new Date()).getTime();
+
+      $.getJSON(window.n8.wagerCreds.wagersUrl + cb, function(data) {
         onWagersReturned(data, true);
       });
     }

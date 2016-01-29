@@ -15,16 +15,15 @@
         letter: '='
       },
       replace: true,
-      template: '<img id="{{uuid}}" data-ng-src="//www.gravatar.com/avatar/{{emailHash}}?s={{size}}&r={{rating}}&d={{defaultImage}}" />',
+      template: '<img data-ng-src="//www.gravatar.com/avatar/{{emailHash}}?s={{size}}&r={{rating}}&d={{defaultImage}}" />',
       link: linkFn
     };
 
     /* @ngInject */
     function linkFn($scope, element, attrs) {
-      $scope.uuid = UtilityService.uuid();
-      $scope.class = `gravatar-${$scope.uuid}`;
       $scope.letter = $scope.letter || '';
       $scope.size = parseInt(attrs.size, 0) || 80;
+      $scope.class = `gravatar-${$scope.size}`;
       $scope.defaultImage = attrs.default || 'mm';
       $scope.forceDefault = angular.isDefined(attrs.force);
       $scope.rating = attrs.rating || 'G';
@@ -45,7 +44,7 @@
 
       if ($scope.round) {
         const styleEl = `
-          <style>
+          <style id='${$scope.class}'>
             .${$scope.class} {
               height: ${$scope.size}px;
               width: ${$scope.size}px;
@@ -57,7 +56,9 @@
 
         element.addClass($scope.class);
 
-        angular.element('body').append(styleEl);
+        if (angular.element(`#${$scope.class}`).length === 0) {
+          angular.element('body').append(styleEl);
+        }
       }
     }
 

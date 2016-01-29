@@ -16,6 +16,7 @@
     vm.tracks = [];
     vm.iAmSyncing = -1;
     vm.winnningWagers = winnningWagers;
+    vm.trackSortOrder = trackSortOrder;
     vm.presences = [];
 
     init();
@@ -25,6 +26,11 @@
       const allWagersChannel = EnumService.PUBNUB.CHANNELS.ALL_WAGERS;
       const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
       const syncChannel = EnumService.PUBNUB.CHANNELS.SYNC;
+      const historyStartTime = moment().toDate().getTime() * 10000; // eslint-disable-line
+      const historyEndTime = moment().add(-6, 'h').toDate().getTime() * 10000; // eslint-disable-line
+
+      console.log('historyStartTime',historyStartTime); // eslint-disable-line
+      console.log('historyEndTime',historyEndTime); // eslint-disable-line
 
       ConfigService
         .getConfig()
@@ -44,9 +50,9 @@
           return new Promise(function(resolve, reject) {
             pn.history({
               channel: allWagersChannel,
-              count: 100,
+              count: 10,
               callback: function(data) {
-                resolve(data[0][0]);
+                resolve(data[0]);
               },
               error: function(err) {
                 reject(err);
@@ -58,13 +64,15 @@
           // TODO: Process wager history
           console.debug('Past wagers loaded...', wagerHistory); // eslint-disable-line
 
-          onAllWagersReceived(wagerHistory);
+          wagerHistory.forEach(onAllWagersReceived);
 
           // Get past results
           return new Promise(function(resolve, reject) {
             pn.history({
               channel: allResultsChannel,
-              count: 50,
+              count: 10,
+              start: historyStartTime,
+              end: historyEndTime,
               callback: function(data) {
                 resolve(data[0]);
               },
@@ -172,6 +180,42 @@
       }
     }
 
+    function trackSortOrder(track) {
+      let sort = '-0';
+
+      if (!track || !track.mtp) {
+        return '-1';
+      }
+
+      if (track.mtp.id === 99) {
+        // FINISHED
+        sort += '-999';
+      }
+      else if (track.mtp.mtp === 99) {
+        // NOT STARTED
+        sort += '-100';
+      }
+      else {
+        sort += '-000';
+
+        if ((track.races || []).length === 0) {
+          sort += '-999';
+        }
+
+        if (track.races[track.races.length - 1].id < track.mtp.id) {
+          sort += '-998';
+        }
+        else {
+          // MTP
+          const mtp = `-000${track.mtp.mtp}`;
+
+          sort += `-${mtp.substr(mtp.length - 3)}`;
+        }
+      }
+
+      return sort;
+    }
+
     function upsertWagers(wagers) {
       wagers.forEach(function(w) {
         upsertWager(w);
@@ -212,7 +256,7 @@
         return w.id === wager.id;
       });
 
-      foundRace.timestamp = wager.timestamp;
+      foundRace.timestamp = foundRace.timestamp && foundRace.timestamp < wager.timestamp ? foundRace.timestamp : wager.timestamp;
 
       if (!foundWager) {
         foundRace.wagers.push(getNewWagerFromWager(wager));
@@ -220,7 +264,13 @@
         return;
       }
       else {
-        foundWager = getNewWagerFromWager(wager);
+        foundRace.wagers = angular.copy(foundRace.wagers).map(function(w) {
+          if (w.id === wager.id) {
+            w = getNewWagerFromWager(wager);
+          }
+
+          return w;
+        });
       }
     }
 
