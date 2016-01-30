@@ -113,8 +113,6 @@
             state: true,
             callback: onHereNow
           });
-
-          startTrackMinimizeTimeout();
         })
         .then(function() {
           pn.subscribe({
@@ -185,7 +183,7 @@
     }
 
     function startTrackMinimizeTimeout() {
-      $timeout(collapseOldTracksAndRaces);
+      $timeout(collapseOldTracksAndRaces, 1500);
 
       function collapseOldTracksAndRaces() {
         vm.tracks = angular.copy(vm.tracks).map(function(t) {
@@ -197,15 +195,12 @@
             return !!liveWager;
           });
 
-          if (!liveRace) {
-            t.hide = angular.isDefined(t.hide) ? t.hide : true;
-          }
-          else {
-            t.hide = undefined;
+          if (t.mtp && t.mtp.id === 99) {
+            t.hide = true;
           }
 
           t.races = angular.copy(t.races).map(function(r) {
-            const liveWager = r.wagers.find(function(w) {
+            const liveWager = !(t.mtp && t.mtp.id > r.id + 1) && r.wagers.find(function(w) {
               return w.status !== 'PAID' && w.status !== 'CANCELED';
             });
 
@@ -225,37 +220,45 @@
     }
 
     function trackSortOrder(track) {
-      let sort = '-0';
+      let sort = '';
+      const sortType = {
+        NOT_STARTED: 'X_NOT_STARTED',
+        UNKNOWN: 'Y_UNKNOWN',
+        FINISHED: 'Z_FINISHED'
+      };
 
-      if (!track || !track.mtp) {
-        return '-1';
+      if (!track || !track.mtp || !track.races || !track.races.length) {
+        sort += `${sortType.UNKNOWN}`;
       }
-
-      if (track.mtp.id === 99) {
-        // FINISHED
-        sort += '-999';
+      else if (track.mtp.id === 99) {
+        sort += `${sortType.FINISHED}`;
       }
       else if (track.mtp.mtp === 99) {
-        // NOT STARTED
-        sort += '-100';
+        sort += `${sortType.NOT_STARTED}`;
       }
       else {
-        sort += '-000';
+        const wagerSortType = {
+          HAS_WAGERS: 'Y_HASWAGERS',
+          NO_WAGERS: 'Z_NOWAGERS'
+        };
+        const hasWagersForThisRace = track.races.find(function(r) {
+          return r.id === track.mtp.id;
+        });
 
-        if ((track.races || []).length === 0) {
-          sort += '-999';
-        }
-
-        if (track.races[track.races.length - 1].id < track.mtp.id) {
-          sort += '-998';
+        if (!hasWagersForThisRace) {
+          sort += `-${wagerSortType.NO_WAGERS}`;
         }
         else {
+          sort += `-${wagerSortType.HAS_WAGERS}`;
+
           // MTP
-          const mtp = `-000${track.mtp.mtp}`;
+          const mtp = `000${track.mtp.mtp.toString()}`;
 
           sort += `-${mtp.substr(mtp.length - 3)}`;
         }
       }
+
+      sort += (track ? `-${track.DisplayName}` : '');
 
       return sort;
     }
