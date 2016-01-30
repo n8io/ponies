@@ -27,7 +27,7 @@
       const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
       const syncChannel = EnumService.PUBNUB.CHANNELS.SYNC;
       const historyStartTime = moment().toDate().getTime() * 10000; // eslint-disable-line
-      const historyEndTime = moment().add(-6, 'h').toDate().getTime() * 10000; // eslint-disable-line
+      const historyEndTime = moment().add(-1, 'h').toDate().getTime() * 10000; // eslint-disable-line
 
       console.log('historyStartTime',historyStartTime); // eslint-disable-line
       console.log('historyEndTime',historyEndTime); // eslint-disable-line
