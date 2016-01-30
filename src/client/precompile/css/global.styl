@@ -31,6 +31,15 @@ a
   &:focus
     border-bottom 1px dotted #555
 
+a.no-underline
+  text-decoration none
+  border-bottom none
+  &:hover
+  &:active
+  &:focus
+    text-decoration none
+    border-bottom none
+
 .no-q-logo
   padding-top 30px
 
@@ -226,6 +235,19 @@ a.bookmarklet
   padding 3px 5px
   border-radius 3px
   border-bottom none !important
+
+.bookmark-container
+  position fixed
+  bottom 5px
+  left 0
+  background-color #fff
+  opacity .3
+  margin 0
+  padding 5px
+  &:hover
+  &:focus
+  &:active
+    opacity 1
 .presence-container
   position fixed
   bottom 0

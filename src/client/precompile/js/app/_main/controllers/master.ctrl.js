@@ -10,7 +10,7 @@
     ;
 
   /* @ngInject */
-  function masterController($timeout, $location, $rootScope, ngNotify, EnumService, ConfigService, PubNub) {
+  function masterController($interval, $timeout, $location, $rootScope, ngNotify, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
 
     vm.tracks = [];
@@ -27,7 +27,7 @@
       const allResultsChannel = EnumService.PUBNUB.CHANNELS.ALL_RESULTS;
       const syncChannel = EnumService.PUBNUB.CHANNELS.SYNC;
       const historyStartTime = moment().toDate().getTime() * 10000; // eslint-disable-line
-      const historyEndTime = moment().add(-1, 'h').toDate().getTime() * 10000; // eslint-disable-line
+      const historyEndTime = moment().add(-20, 'm').toDate().getTime() * 10000; // eslint-disable-line
 
       console.log('historyStartTime',historyStartTime); // eslint-disable-line
       console.log('historyEndTime',historyEndTime); // eslint-disable-line
@@ -50,7 +50,7 @@
           return new Promise(function(resolve, reject) {
             pn.history({
               channel: allWagersChannel,
-              count: 10,
+              count: 30,
               start: historyStartTime,
               end: historyEndTime,
               callback: function(data) {
@@ -113,6 +113,8 @@
             state: true,
             callback: onHereNow
           });
+
+          startTrackMinimizeTimeout();
         })
         .then(function() {
           pn.subscribe({
@@ -182,6 +184,46 @@
       }
     }
 
+    function startTrackMinimizeTimeout() {
+      $timeout(collapseOldTracksAndRaces);
+
+      function collapseOldTracksAndRaces() {
+        vm.tracks = angular.copy(vm.tracks).map(function(t) {
+          const liveRace = t.races.find(function(r) {
+            const liveWager = r.wagers.find(function(w) {
+              return w.status !== 'PAID' && w.status !== 'CANCELED';
+            });
+
+            return !!liveWager;
+          });
+
+          if (!liveRace) {
+            t.hide = angular.isDefined(t.hide) ? t.hide : true;
+          }
+          else {
+            t.hide = undefined;
+          }
+
+          t.races = angular.copy(t.races).map(function(r) {
+            const liveWager = r.wagers.find(function(w) {
+              return w.status !== 'PAID' && w.status !== 'CANCELED';
+            });
+
+            if (!liveWager) {
+              r.hide = angular.isDefined(r.hide) ? r.hide : true;
+            }
+            else {
+              r.hide = undefined;
+            }
+
+            return r;
+          });
+
+          return t;
+        });
+      }
+    }
+
     function trackSortOrder(track) {
       let sort = '-0';
 
@@ -222,6 +264,8 @@
       wagers.forEach(function(w) {
         upsertWager(w);
       });
+
+      startTrackMinimizeTimeout();
     }
 
     function upsertWager(wager) {

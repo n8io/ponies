@@ -603,11 +603,21 @@
     var $wpsTbls = $(html).find('.toteboard:even');
     var $exTbls = $(html).find('.toteboard:odd');
 
+    $(html).find('th[colspan="4"] a,script').remove();
+
+    var raceIds = [];
+    var regex = /Race (\d+)/ig;
+
+    $(html).find('th[colspan="4"]').each(function(index, th) {
+      var matches = $(th).text().match(regex);
+      raceIds.push(parseInt(matches[0].replace('Race ', ''), 0));
+    });
+
     $wpsTbls.each(function(i, tbl) {
       var $tbl = $(tbl);
       var $xbl = $($exTbls[i]);
       var race = {
-        id: i + 1,
+        id: raceIds[i],
         wps: [],
         exotics: []
       };

@@ -11,5 +11,10 @@ md-toolbar(layout='row')
       md-button(href='/admin', aria-label='Log In') Log In
     - else
       span.welcome Hi #{user.givenName}
-      md-button(href='/logout', aria-label='Log Out') Log Out
+      span &nbsp;&nbsp;
+      a.md-link(href='/bookmark', target='_bookmark', aria-label='Help').no-underline
+        i.fa.fa-question
+      span &nbsp;&nbsp;
+      a.md-link(href='/logout', aria-label='Log Out').no-underline
+        i.fa.fa-sign-out
 

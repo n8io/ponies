@@ -26,6 +26,8 @@ append body-content
                           i.fa.fa-angle-double-down
                         span(data-ng-hide='track.hide')
                           i.fa.fa-angle-double-up
+                  tr(data-ng-hide='$last')
+                    td(style='height: 1px; background: #fff;')
                   tr(data-ng-repeat='race in track.races | orderBy:"id":true', data-ng-hide='track.hide')
                     td
                       table(cellspacing='0', cellpadding='0').width-100pct
