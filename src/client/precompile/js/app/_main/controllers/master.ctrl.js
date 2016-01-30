@@ -51,6 +51,8 @@
             pn.history({
               channel: allWagersChannel,
               count: 10,
+              start: historyStartTime,
+              end: historyEndTime,
               callback: function(data) {
                 resolve(data[0]);
               },

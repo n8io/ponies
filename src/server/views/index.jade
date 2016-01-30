@@ -56,7 +56,7 @@ append body-content
                                 wager-timestamp(wager='wager')
     if (locals.debug)
       pre.code {{mc.tracks | json}}
-  .presence-container
+  .presence-container(data-ng-show='mc.presences.length > 0')
     .presence-wrapper
       .presence(data-ng-repeat='presence in mc.presences', data-ng-class='{syncing: presence.isSyncing}')
         gravatar(email='presence.email', size='50', round, title='{{presence.givenName + " " + presence.surname + " is " + (presence.isSyncing ? "" : "not ") + "syncing"}}', default='http://google.com/broken-image.jpg', letter='presence.givenName')
