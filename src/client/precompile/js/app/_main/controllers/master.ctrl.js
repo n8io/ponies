@@ -195,7 +195,7 @@
             return !!liveWager;
           });
 
-          if (t.mtp && t.mtp.id === 99) {
+          if (!liveRace || (t.mtp && t.mtp.id === 99)) {
             t.hide = true;
           }
 
