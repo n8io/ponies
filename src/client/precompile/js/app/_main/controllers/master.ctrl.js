@@ -183,12 +183,12 @@
     }
 
     function startTrackMinimizeTimeout() {
-      $timeout(collapseOldTracksAndRaces, 1500);
+      $timeout(collapseOldTracksAndRaces, 500);
 
       function collapseOldTracksAndRaces() {
         vm.tracks = angular.copy(vm.tracks).map(function(t) {
           const liveRace = t.races.find(function(r) {
-            const liveWager = r.wagers.find(function(w) {
+            const liveWager = !(t.mtp && t.mtp.id > r.id + 1) && r.wagers.find(function(w) {
               return w.status !== 'PAID' && w.status !== 'CANCELED';
             });
 
