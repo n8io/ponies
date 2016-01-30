@@ -12,9 +12,9 @@ md-toolbar(layout='row')
     - else
       span.welcome Hi #{user.givenName}
       span &nbsp;&nbsp;
-      a.md-link(href='/bookmark', target='_bookmark', aria-label='Help').no-underline
+      a.md-link(href='/bookmark', target='_bookmark', title='Help').no-underline
         i.fa.fa-question
       span &nbsp;&nbsp;
-      a.md-link(href='/logout', aria-label='Log Out').no-underline
+      a.md-link(href='/logout', title='Log Out').no-underline
         i.fa.fa-sign-out
 
