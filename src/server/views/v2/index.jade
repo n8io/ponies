@@ -1,0 +1,6 @@
+extends ../_layouts/master/_
+
+append body-content
+  #content(layout='row', flex, layout-margin='20', data-ng-controller='SlimWagersController as swc').bump-bottom
+    md-content.width-100pct
+      pre.code {{swc | json}}

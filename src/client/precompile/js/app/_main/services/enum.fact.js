@@ -22,6 +22,11 @@
           ALL_RESULTS: 'results-all',
           SYNC: 'sync'
         }
+      },
+      PubNub: {
+        Channels: {
+          WAGERS: 'v2-wagers'
+        }
       }
     };
   }
