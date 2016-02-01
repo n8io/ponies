@@ -1,23 +1,23 @@
 (function() {
-  const n8 = {
+  const pwnies = {
     user: getUserInfo()
   };
   const WAGERS_CHANNEL = 'v2-wagers';
-  const threeSeconds = 1000 * 3;
-  // const fiveSeconds = 1000 * 5;
+  // const threeSeconds = 1000 * 3;
+  const fiveSeconds = 1000 * 5;
   // const thirtySeconds = 1000 * 30;
   // const oneMinute = 1000 * 30;
 
   init();
 
   function init() {
-    if (window.n8) { // eslint-disable-line
+    if (window.pwnies) { // eslint-disable-line
       console.warn('Pownies script already loaded. I ain\'t gonna do shit.'); // eslint-disable-line
 
       return;
     }
 
-    window.n8 = true; // eslint-disable-line
+    window.pwnies = true; // eslint-disable-line
 
     clearConsole()
       .then(function() {
@@ -36,7 +36,9 @@
         return initializePubNub();
       })
       .then(function() {
-        console.log(`Finished init.`, n8); // eslint-disable-line
+        console.log(`Finished init.`, pwnies); // eslint-disable-line
+
+        window.pwnies = pwnies; // eslint-disable-line
 
         return;
       })
@@ -44,14 +46,6 @@
         return initializeWagerChecks();
       })
       ;
-
-    // initializePubNub();
-    // initializePoolTypes();
-    // initalizeTracks();
-    // refreshControlData();
-    // bindLeave();
-
-    // setTimeout(toggleSync, 4000);
   }
 
   function clearConsole() {
@@ -102,7 +96,7 @@
       const button = $('<button id="syncButton" disabled><span>Sync: --</span><div class=""></div></button>'); // eslint-disable-line
 
       button.on('click', function() {
-        // toggleSync();
+        toggleSync();
       });
 
       $('body').prepend(button); // eslint-disable-line
@@ -120,7 +114,7 @@
 
       return new Promise(function(resolve) {
         setTimeout(function() { // eslint-disable-line
-          n8.wagerCreds = $('#iWager')[0].contentWindow.Cdi.AppConfig.WS; // eslint-disable-line
+          pwnies.wagerCreds = $('#iWager')[0].contentWindow.Cdi.AppConfig.WS; // eslint-disable-line
 
           console.debug(`... iframe creds found.`); // eslint-disable-line
 
@@ -152,21 +146,21 @@
 
   function initializeControlData() {
     const uc = Cdi.AppConfig.WS; // eslint-disable-line
-    const wc = n8.wagerCreds;
+    const wc = pwnies.wagerCreds;
 
-    n8.wagerCreds.wagersUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Rtb/GetData?' // eslint-disable-line
+    pwnies.wagerCreds.wagersUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Rtb/GetData?' // eslint-disable-line
         + '&username=' + wc.USERNAME
         + '&password=' + wc.PASSWORD
         + '&ip=' + wc.CDI_CLIENT_IP
         + '&affid=' + wc.CDI_SAID
         + '&affiliateId=' + wc.CDI_SAID
-        + '&account=' + n8.user.accountNum
-        + '&authKey=' + n8.user.authKey
+        + '&account=' + pwnies.user.accountNum
+        + '&authKey=' + pwnies.user.authKey
         + '&output=json'
         + '&limit=200'
         ;
 
-    n8.wagerCreds.poolTypesUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Tote/PoolTypes?' // eslint-disable-line
+    pwnies.wagerCreds.poolTypesUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Tote/PoolTypes?' // eslint-disable-line
       + '&username=' + wc.USERNAME
       + '&password=' + wc.PASSWORD
       + '&ip=' + wc.CDI_CLIENT_IP
@@ -175,7 +169,7 @@
       + '&output=json'
       ;
 
-    n8.wagerCreds.trackListUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Cdi/TrackList?multisource=1&vidType=FLV' // eslint-disable-line
+    pwnies.wagerCreds.trackListUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Cdi/TrackList?multisource=1&vidType=FLV' // eslint-disable-line
       + '&username=' + uc.USERNAME
       + '&password=' + uc.PASSWORD
       + '&ip=' + uc.CDI_CLIENT_IP
@@ -183,14 +177,14 @@
       + '&output=json'
       ;
 
-    return n8;
+    return pwnies;
   }
 
   function initializePoolTypes() {
     return new Promise(function(resolve) {
       console.debug('Fetching pool types...'); // eslint-disable-line
 
-      $.getJSON(n8.wagerCreds.poolTypesUrl, function(data) {
+      $.getJSON(pwnies.wagerCreds.poolTypesUrl, function(data) {
         console.debug('... pool types received.'); // eslint-disable-line
 
         return resolve(data.PoolTypes);
@@ -202,10 +196,10 @@
     return new Promise(function(resolve) {
       console.debug(`Fetching track list...`); // eslint-disable-line
 
-      $.getJSON(n8.wagerCreds.trackListUrl, function(data) {
+      $.getJSON(pwnies.wagerCreds.trackListUrl, function(data) {
         console.debug(`... track list received.`); // eslint-disable-line
 
-        n8.tracks = data.Tracks;
+        pwnies.tracks = data.Tracks;
 
         return resolve();
       });
@@ -225,30 +219,28 @@
     .then(function(pubNubInstance) {
       console.debug(`PubNub initialized.`); // eslint-disable-line
 
-      n8.PubNub = pubNubInstance;
+      pwnies.PubNub = pubNubInstance;
 
       $(window).bind('unload',function() { // eslint-disable-line
-        n8.isSyncing = false; // eslint-disable-line
+        pwnies.isSyncing = false; // eslint-disable-line
 
-        n8.user = getUserInfo();
-
-        n8.PubNub.state({
+        pwnies.PubNub.state({
           channel: WAGERS_CHANNEL,
-          state: n8.user,
+          state: getUserInfoSlim(),
           callback: function() {},
           error: function() {}
         });
       });
 
       return new Promise(function(resolve) {
-        n8.PubNub.subscribe({
+        pwnies.PubNub.subscribe({
           channel: WAGERS_CHANNEL,
           message: function() {},
-          state: n8.user,
+          state: getUserInfoSlim(),
           connect: function() {
             console.debug(`Successfully subscribed to ${WAGERS_CHANNEL} channel.`); // eslint-disable-line
 
-            return resolve(n8.PubNub);
+            return resolve(pwnies.PubNub);
           }
         });
       });
@@ -259,18 +251,105 @@
   function initializeWagerChecks() {
     console.debug(`Initializing wager check interval...`); // eslint-disable-line
 
-    if (!n8.intervals) {
-      n8.intervals = {};
+    wagerCheckingStart();
+  }
+
+  function toggleSync() {
+    pwnies.isSyncing = !pwnies.isSyncing;
+
+    if (pwnies.isSyncing) {
+      wagerCheckingStart();
+    }
+    else {
+      wagerCheckingStop();
+    }
+  }
+
+  function wagerCheckingStop() {
+    pwnies.isSyncing = false;
+
+    if (!pwnies.intervals) {
+      pwnies.intervals = {};
     }
 
-    if (n8.intervals.wc) {
-      clearInterval(n8.intervals.wc);
+    if (pwnies.intervals.wc) {
+      clearInterval(pwnies.intervals.wc);
     }
 
-    n8.intervals.wc = setInterval(function() { // eslint-disable-line
-      // TODO: do wager checks
-      console.debug(`// TODO: do wager checks`); // eslint-disable-line
-    }, threeSeconds);
+    setSyncState(pwnies.isSyncing);
+    updateSyncButton(pwnies.isSyncing);
+  }
+
+  function wagerCheckingStart() {
+    pwnies.isSyncing = true;
+
+    if (!pwnies.intervals) {
+      pwnies.intervals = {};
+    }
+
+    if (pwnies.intervals.wc) {
+      clearInterval(pwnies.intervals.wc);
+    }
+
+    setSyncState(pwnies.isSyncing);
+    updateSyncButton(pwnies.isSyncing);
+
+    processWagers(); // Process immediately on first run
+
+    pwnies.intervals.wc = setInterval(function() { // eslint-disable-line
+      processWagers();
+    }, fiveSeconds);
+  }
+
+  function processWagers() {
+    getWagers()
+      .then(function(wagers) {
+        console.debug(`Wagers data received...`, wagers); // eslint-disable-line
+      })
+      ;
+  }
+
+  function getWagers() {
+    return new Promise(function(resolve) {
+      const cb = `&cb=${(new Date()).getTime()}`;
+
+      $.getJSON(pwnies.wagerCreds.wagersUrl + cb, function(data) {
+        return resolve(data);
+      });
+    });
+  }
+
+  function setSyncState(isSyncing) {
+    pwnies.PubNub.state({
+      channel: WAGERS_CHANNEL,
+      state: getUserInfoSlim(),
+      callback: function() {
+        if (isSyncing) {
+          console.debug('Started syncing.') // eslint-disable-line
+        }
+        else {
+          console.debug('Stopped syncing.') // eslint-disable-line
+        }
+      },
+      error: function() {}
+    });
+  }
+
+  function updateSyncButton(isSyncing) {
+    const $btn = $('body').find('#syncButton'); // eslint-disable-line
+    const $span = $btn.find('span');
+    const $indicator = $btn.find('div');
+
+    $btn.removeAttr('disabled');
+
+    if (isSyncing) {
+      $span.text('Sync: ON');
+      $indicator.addClass('on');
+    }
+    else {
+      $span.text('Sync: OFF');
+      $indicator.removeClass('on');
+    }
   }
 
   function getUserInfo() {
@@ -284,39 +363,30 @@
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        isSyncing: n8 && n8.isSyncing
+        accountNum: user.accountNum,
+        authKey: user.authKey,
+        isSyncing: pwnies && pwnies.isSyncing
       };
     }
 
     return {};
   }
 
-  // function bindLeave() {
-  //   $(window).bind('unload',function() {
-  //     window.n8.isSyncing = false;
+  function getUserInfoSlim() {
+    const data = getUserInfo();
 
-  //     window.PubNub.state({
-  //       channel: WAGER_SYNC_CHANNEL,
-  //       state: getUserState(),
-  //       callback: function() {},
-  //       error: function() {}
-  //     });
-  //   });
-  // }
-
-  // function getUserState() {
-  //   return {
-  //     email: window.n8.user.email,
-  //     firstName: window.n8.user.firstName,
-  //     lastName: window.n8.user.lastName,
-  //     isSyncing: window.n8.isSyncing
-  //   };
-  // }
+    return {
+      email: data.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      isSyncing: data.isSyncing
+    };
+  }
 
   // function refreshRaceResults() {
   //   const callbackFns = [];
-  //   let tracks = _.map(window.n8.wagers || [], function(w) {
-  //     return window.n8.tracks.find(function(t) { return t.EventCode === w.eventCode; }).BrisCode;
+  //   let tracks = _.map(window.pwnies.wagers || [], function(w) {
+  //     return window.pwnies.tracks.find(function(t) { return t.EventCode === w.eventCode; }).BrisCode;
   //   });
 
   //   tracks = _.uniq(tracks);
@@ -326,10 +396,10 @@
   //   }
 
   //   console.debug('Refreshing race results...', tracks);
-  //   window.n8.mtps = getTrackMtps();
+  //   window.pwnies.mtps = getTrackMtps();
 
   //   tracks.forEach(function(tr) {
-  //     const track = window.n8.tracks.find(function(t) { return t.BrisCode === tr; });
+  //     const track = window.pwnies.tracks.find(function(t) { return t.BrisCode === tr; });
   //     callbackFns.push(function(cb) {
   //       getRaceResults(track, cb);
   //     });
@@ -428,27 +498,8 @@
   //   return (name = new RegExp('(?:^|;\\s*)' + ('' + name).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '=([^;]*)').exec(document.cookie)) && name[1];
   // }
 
-  // function updateSyncButton(isSyncing) {
-  //   const $btn = $('body').find('#syncButton');
-  //   const $span = $btn.find('span');
-  //   const $indicator = $btn.find('div');
-
-  //   $btn.removeAttr('disabled');
-
-  //   if (isSyncing) {
-  //     $span.text('Sync: ON')
-  //     $indicator.addClass('on');
-  //     console.debug('Started syncing wagers...');
-  //   }
-  //   else {
-  //     $span.text('Sync: OFF');
-  //     $indicator.removeClass('on');
-  //     console.debug('Stopped syncing wagers.');
-  //   }
-  // }
-
   // function toggleSync() {
-  //   const isSyncing = window.n8.isSyncing = !window.n8.isSyncing;
+  //   const isSyncing = window.pwnies.isSyncing = !window.pwnies.isSyncing;
 
   //   updateSyncButton(isSyncing);
 
@@ -468,7 +519,7 @@
   //       error: function() {}
   //     });
 
-  //     window.n8.hasSyncedBefore = false;
+  //     window.pwnies.hasSyncedBefore = false;
 
   //     return;
   //   }
@@ -498,7 +549,7 @@
   //   function diffWagers() {
   //     const cb = '&cb=' + (new Date()).getTime();
 
-  //     $.getJSON(window.n8.wagerCreds.wagersUrl + cb, function(data) {
+  //     $.getJSON(window.pwnies.wagerCreds.wagersUrl + cb, function(data) {
   //       onWagersReturned(data);
   //     });
   //   }
@@ -506,7 +557,7 @@
   //   function allWagers() {
   //     const cb = '&cb=' + (new Date()).getTime();
 
-  //     $.getJSON(window.n8.wagerCreds.wagersUrl + cb, function(data) {
+  //     $.getJSON(window.pwnies.wagerCreds.wagersUrl + cb, function(data) {
   //       onWagersReturned(data, true);
   //     });
   //   }
@@ -514,14 +565,14 @@
   //   function onWagersReturned(data, forceSendAll) {
   //     let wagers = data.Wagers;
 
-  //     if (window.n8.hasSyncedBefore && !forceSendAll) {
-  //       wagers = _.differenceWith(data.Wagers, window.n8.wagers, _.isEqual);
+  //     if (window.pwnies.hasSyncedBefore && !forceSendAll) {
+  //       wagers = _.differenceWith(data.Wagers, window.pwnies.wagers, _.isEqual);
   //     }
 
-  //     pushWagers(wagers, window.n8.hasSyncedBefore);
+  //     pushWagers(wagers, window.pwnies.hasSyncedBefore);
 
-  //     window.n8.wagers = data.Wagers;
-  //     window.n8.hasSyncedBefore = true;
+  //     window.pwnies.wagers = data.Wagers;
+  //     window.pwnies.hasSyncedBefore = true;
   //   }
   // }
 
@@ -558,7 +609,7 @@
   //       });
   //     });
 
-  //     window.n8.results = tracks;
+  //     window.pwnies.results = tracks;
   //   }
   // }
 
@@ -586,7 +637,7 @@
   // }
 
   // function convertWagersToSlimObjects(wagers) {
-  //   if (!wagers || !window.n8.poolTypes || !window.n8.poolTypes.length) {
+  //   if (!wagers || !window.pwnies.poolTypes || !window.pwnies.poolTypes.length) {
   //     return [];
   //   }
 
@@ -596,13 +647,13 @@
 
   //     newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // Wager dates are local to America/Los_Angeles
   //     newWager.id = w.serialNumber;
-  //     newWager.user = _.pick(window.n8.user, ['email', 'firstName', 'lastName', 'accountNum']);
+  //     newWager.user = _.pick(window.pwnies.user, ['email', 'firstName', 'lastName', 'accountNum']);
   //     newWager.betAmount = parseFloat(w.totalCost, 10);
   //     newWager.payoutAmount = parseFloat(w.payoutAmount, 10);
-  //     newWager.type = window.n8.poolTypes.find(function(pt) { return pt.Code === w.poolType; });
+  //     newWager.type = window.pwnies.poolTypes.find(function(pt) { return pt.Code === w.poolType; });
   //     newWager.selections = w.runnersList;
   //     newWager.race = {id: w.race};
-  //     newWager.track = window.n8.tracks.find(function(t) { return t.EventCode === w.eventCode; });
+  //     newWager.track = window.pwnies.tracks.find(function(t) { return t.EventCode === w.eventCode; });
   //     newWager.eventCode = newWager.track.EventCode;
   //     newWager.status = w.status;
   //     newWager.refundAmount = w.refundAmount;
@@ -649,7 +700,7 @@
   //       BrisCode: track.BrisCode
   //     };
 
-  //     const foundMtp = window.n8.mtps.find(function(mtp) {
+  //     const foundMtp = window.pwnies.mtps.find(function(mtp) {
   //       return mtp.BrisCode.toLowerCase() === data.track.BrisCode.toLowerCase();
   //     });
 
