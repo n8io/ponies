@@ -1,8 +1,12 @@
 (function() {
-  const WAGERS_CHANNEL = 'v2-wagers';
   const n8 = {
     user: getUserInfo()
   };
+  const WAGERS_CHANNEL = 'v2-wagers';
+  const threeSeconds = 1000 * 3;
+  // const fiveSeconds = 1000 * 5;
+  // const thirtySeconds = 1000 * 30;
+  // const oneMinute = 1000 * 30;
 
   init();
 
@@ -29,7 +33,15 @@
         return initalizeTracks();
       })
       .then(function() {
+        return initializePubNub();
+      })
+      .then(function() {
         console.log(`Finished init.`, n8); // eslint-disable-line
+
+        return;
+      })
+      .then(function() {
+        return initializeWagerChecks();
       })
       ;
 
@@ -200,6 +212,67 @@
     });
   }
 
+  function initializePubNub() {
+    return new Promise(function(resolve) {
+      console.debug(`Initing PubNub...`); // eslint-disable-line
+
+      return resolve(PUBNUB.init({ // eslint-disable-line
+        'publish_key': '{{pubsub_publish_key}}',
+        'subscribe_key': '{{pubsub_subscribe_key}}',
+        ssl: window.location.protocol.indexOf('s') > -1 // eslint-disable-line
+      }));
+    })
+    .then(function(pubNubInstance) {
+      console.debug(`PubNub initialized.`); // eslint-disable-line
+
+      n8.PubNub = pubNubInstance;
+
+      $(window).bind('unload',function() { // eslint-disable-line
+        n8.isSyncing = false; // eslint-disable-line
+
+        n8.user = getUserInfo();
+
+        n8.PubNub.state({
+          channel: WAGERS_CHANNEL,
+          state: n8.user,
+          callback: function() {},
+          error: function() {}
+        });
+      });
+
+      return new Promise(function(resolve) {
+        n8.PubNub.subscribe({
+          channel: WAGERS_CHANNEL,
+          message: function() {},
+          state: n8.user,
+          connect: function() {
+            console.debug(`Successfully subscribed to ${WAGERS_CHANNEL} channel.`); // eslint-disable-line
+
+            return resolve(n8.PubNub);
+          }
+        });
+      });
+    })
+    ;
+  }
+
+  function initializeWagerChecks() {
+    console.debug(`Initializing wager check interval...`); // eslint-disable-line
+
+    if (!n8.intervals) {
+      n8.intervals = {};
+    }
+
+    if (n8.intervals.wc) {
+      clearInterval(n8.intervals.wc);
+    }
+
+    n8.intervals.wc = setInterval(function() { // eslint-disable-line
+      // TODO: do wager checks
+      console.debug(`// TODO: do wager checks`); // eslint-disable-line
+    }, threeSeconds);
+  }
+
   function getUserInfo() {
     const obj = JSON.parse(sessionStorage.getItem('GlobalData')); // eslint-disable-line
 
@@ -210,7 +283,8 @@
       return {
         email: user.email,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        isSyncing: n8 && n8.isSyncing
       };
     }
 
@@ -228,58 +302,6 @@
   //       error: function() {}
   //     });
   //   });
-  // }
-
-  // function initializePubNub() {
-  //   return
-  //     new Promise(function(resolve, reject) {
-  //       console.debug(`Initing PubNub...`); // eslint-disable-line
-
-  //       return PUBNUB.init({
-  //         publish_key: '{{pubsub_publish_key}}',
-  //         subscribe_key: '{{pubsub_subscribe_key}}',
-  //         ssl: true
-  //       });
-  //     })
-  //     .then(function(pubNubInstance) {
-  //       n8.PubNub = pubNubInstance;
-
-  //       return new Promise(function(resolve) {
-  //         n8.PubNub.subscribe({
-  //           channel: WAGERS_CHANNEL,
-  //           subscribe_key: '{{pubsub_subscribe_key}}',
-  //           message: function() {},
-  //           state: getUserState(),
-  //           connect: function() {
-  //             console.debug(`Successfully subscribed to ${WAGERS_CHANNEL} channel.`);
-
-  //             return resolve();
-  //           }
-  //         })
-  //       });
-  //     })
-  //     ;
-
-  //   setTimeout(function() {
-  //     console.debug('Initing PubNub....');
-
-  //     window.PubNub = PUBNUB.init({
-  //       publish_key: 'pub-c-c51fe29c-192d-449c-a61b-1715f42ced37',
-  //       subscribe_key: 'sub-c-2f1cbf66-be98-11e5-a9b2-02ee2ddab7fe',
-  //       ssl: true
-  //     });
-  //   }, 1000);
-
-  //   setTimeout(function() {
-  //     window.PubNub.subscribe({
-  //       channel: WAGER_SYNC_CHANNEL,
-  //       'subscribe_key': '{{pubsub_subscribe_key}}',
-  //       message: function() {},
-  //       state: getUserState()
-  //     });
-
-  //     console.debug('Now subscribed to ' + WAGER_SYNC_CHANNEL + ' channel.');
-  //   }, 1500);
   // }
 
   // function getUserState() {

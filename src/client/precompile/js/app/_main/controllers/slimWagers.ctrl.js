@@ -16,6 +16,8 @@
     function init() {
       const channels = EnumService.PubNub.Channels;
 
+      vm.presences = [];
+
       ConfigService
         .getConfig()
         .then(function(res) {
@@ -78,10 +80,6 @@
     }
 
     function onPresenceEventReceived(ev) { // eslint-disable-line
-      if (!ev.state) {
-        return;
-      }
-
       switch (ev.action) {
         case 'state-change':
           return onPresenceStateChange(ev);
@@ -99,6 +97,26 @@
 
     function onPresenceJoin(ev) {
       console.debug('Presence join event received...', ev); // eslint-disable-line
+
+      $timeout(function() {
+        const presences = angular.copy(vm.presences);
+        const foundPresence = presences.find(function(p) {
+          return p.uuid === ev.uuid;
+        });
+
+        if (!foundPresence) {
+          vm.presences.push(mapToUserInfo(ev));
+        }
+        else {
+          vm.presences = presences.map(function(p) {
+            if (p.email === ev.uuid) {
+              p = mapToUserInfo(ev);
+            }
+
+            return p;
+          });
+        }
+      });
     }
 
     function onPresenceLeave(ev) {
@@ -109,20 +127,29 @@
       console.debug('Presence state change event received...', ev); // eslint-disable-line
     }
 
-    function mapToUserInfo(user) { // eslint-disable-line
+    function mapToUserInfo(user) {
       let data;
+      let state = {};
 
       if (!user) {
         return user;
       }
 
+      if (user.state) {
+        state = user.data || user.state;
+      }
+
       data = {
-        email: user.email,
-        firstName: user.firstName || user.givenName,
-        lastName: user.lastName || user.surname
+        email: state.email || user.uuid || user.email,
+        firstName: state.firstName || user.firstName || user.givenName || undefined,
+        lastName: state.lastName || user.lastName || user.surname || undefined
       };
 
-      data.fullName = user.fullName || `${data.firstName} ${data.lastName}`;
+      data.fullName = state.fullName || undefined;
+
+      if (!data.fullName && data.firstName && data.lastName) {
+        data.fullName = `${data.firstName} ${data.lastName}`;
+      }
 
       return data;
     }
