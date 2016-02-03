@@ -19,6 +19,6 @@ append body-content
                             wager(wager='wager')
               .clearfix
       - if (locals.showDebug)
-        pre.code {{swc.slimTracks | json}}
+        pre.code {{swc.presences | json}}
     sync-status(status='swc.me.isSyncing')
-    presence(presences='swc.presences')
+    presence(presences='swc.presences', my-presence='swc.userInfo')

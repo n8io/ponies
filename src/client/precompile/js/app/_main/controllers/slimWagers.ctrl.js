@@ -25,7 +25,7 @@
       ConfigService
         .getConfig()
         .then(function(res) {
-          userInfo = res.data.user;
+          vm.userInfo = userInfo = res.data.user;
 
           return PubNub.init({
             'subscribe_key': res.data.pubNub.subscribeKey,
@@ -48,7 +48,7 @@
               heartbeat: 60,
               message: onMessageReceived,
               presence: onPresenceEventReceived,
-              // state: mapToUserInfo(userInfo),
+              state: mapToUserInfo(userInfo),
               connect: function() {
                 console.debug(`Now subscribed to ${channels.WAGERS} channel.`); // eslint-disable-line
 
@@ -91,19 +91,21 @@
 
       if (message.trackResult) {
         return $timeout(function() {
+          console.debug(`Track result received ${message.trackResult.track.BrisCode}...`, message.trackResult); // eslint-disable-line
+
           processTrackResult(message.trackResult);
         });
       }
       else if (message.wagers) {
         return $timeout(function() {
+          console.debug(`Wagers received...`, message.wagers); // eslint-disable-line
+
           processWagers(message.wagers);
         });
       }
     }
 
     function processTrackResult(trackResult) {
-      console.debug(`Track result received ${trackResult.track.BrisCode}...`, trackResult); // eslint-disable-line
-
       const foundTrack = vm.tracks.find(function(t) {
         return t.BrisCode === trackResult.track.BrisCode;
       });
@@ -122,7 +124,7 @@
         t.nextRace = trackResult.track.nextRace;
 
         if ((t.nextRace.Status || '').toLowerCase() === 'closed') {
-          t.hide = angular.isDefined(t.hide) ? t.hide : true;
+          t.softHide = true;
         }
 
         t.races.forEach(function(cr) {
@@ -135,7 +137,7 @@
           }
 
           if (t.nextRace.RaceNum - 1 > cr.id) {
-            cr.hide = angular.isDefined(cr.hide) ? cr.hide : true;
+            cr.softHide = true;
           }
         });
 
@@ -146,18 +148,18 @@
 
           if (!foundCurrentRace) {
             if (t.nextRace.RaceNum - 1 > tr.id) {
-              tr.hide = true;
+              tr.softHide = true;
             }
 
             t.races.push(tr);
           }
         });
+
+        t.softHide = !hasActiveWagers(t);
       });
     }
 
     function processWagers(wagers) {
-      console.debug(`Wagers received...`, wagers); // eslint-disable-line
-
       vm.tracks.forEach(function(t) {
         const foundWagers = wagers.filter(function(w) {
           return w.track.BrisCode === t.BrisCode;
@@ -174,7 +176,7 @@
 
           if (foundRace) {
             if (t.nextRace.RaceNum - 1 > foundRace.id) {
-              foundRace.hide = angular.isDefined(foundRace.hide) ? foundRace.hide : true;
+              foundRace.softHide = true;
             }
 
             const foundWager = (foundRace.wagers || []).find(function(w) {
@@ -200,12 +202,14 @@
             const race = getNewRaceFromWager(fw);
 
             if (t.nextRace.RaceNum - 1 > race.id) {
-              race.hide = true;
+              race.softHide = true;
             }
 
             t.races.push(race);
           }
         });
+
+        t.softHide = !hasActiveWagers(t);
       });
     }
 
@@ -230,6 +234,13 @@
 
     function onPresenceJoin(ev) {
       console.debug('Presence join event received...', ev); // eslint-disable-line
+
+      if (ev.uuid === userInfo.email) {
+        // Ignore, it's just me
+        console.debug(`Ignoring because it is just me joining the channel.`); // eslint-disable-line
+
+        return;
+      }
 
       $timeout(function() {
         updatePresences(ev);
@@ -283,7 +294,7 @@
 
       if (ev.action === 'leave') {
         vm.presences = vm.presences.filter(function(p) {
-          return p.email !== ev.data.email;
+          return p.email !== ev.uuid;
         });
 
         return;
@@ -359,6 +370,18 @@
       }
 
       return data;
+    }
+
+    function hasActiveWagers(track) {
+      if (!track || !track.races || !track.races.length) {
+        return false;
+      }
+
+      const nextRaceId = track.nextRace.RaceNum;
+
+      return track.races.find(function(r) {
+        return r.id >= nextRaceId - 1 && r.wagers && r.wagers.length;
+      });
     }
 
     function hasOldRaces(track) {

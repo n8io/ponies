@@ -18,8 +18,12 @@
       const third = wps[2];
       let str = '';
 
-      if (first && second) {
-        str += `${first.horse}/${second.horse}`;
+      if (first) {
+        str += `${first.horse}`;
+      }
+
+      if (second) {
+        str += `/${second.horse}`;
       }
 
       if (third) {

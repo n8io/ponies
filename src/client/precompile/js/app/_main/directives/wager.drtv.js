@@ -39,7 +39,7 @@
         <span class='wager-payout'
           data-ng-class='{winner: wager.payoutAmount > 0, loser: wager.status == "PAID" && wager.payoutAmount == 0}'
           data-ng-if='wager.status == "PAID" && wager.status != "CANCELED"'
-          data-ng-bind='wager.betAmount | currency:"$":2'>
+          data-ng-bind='wager.payoutAmount || wager.betAmount | currency:"$":2'>
         </span>
         <span class='wager-refund'
           data-ng-if='wager.status == "CANCELED"'

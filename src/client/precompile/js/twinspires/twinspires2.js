@@ -3,7 +3,8 @@
     user: getUserInfo(),
     tick: 0,
     toc: 10,
-    closedTracks: []
+    closedTracks: [],
+    tracksSent: []
   };
   const WAGERS_CHANNEL = 'v2-wagers';
   const MESSAGE_TYPE_TRACK_RESULT = 'trackResult';
@@ -275,6 +276,8 @@
   function wagerCheckingStop() {
     pwnies.isSyncing = false;
     pwnies.tick = 0;
+    pwnies.closedTracks = [];
+    pwnies.tracksSent = [];
 
     if (!pwnies.timeouts) {
       pwnies.timeouts = {};
@@ -299,6 +302,7 @@
 
   function processWagers(forceSendAllWagers) {
     const wagersBefore = pwnies.wagers || [];
+    const tracksBefore = pwnies.tracksSent || [];
     let tWagers = [];
 
     getWagersPromise()
@@ -310,7 +314,7 @@
         pwnies.wagers = wagers.concat();
         tWagers = wagers.concat();
 
-        console.debug(`Wagers data received...`, tWagers); // eslint-disable-line
+        console.debug(`Wagers data retrieved...`, tWagers); // eslint-disable-line
 
         return wagers;
       })
@@ -324,7 +328,7 @@
         return getAllTrackResultsPromise(removeFinishedTracks(tracks));
       })
       .then(function(allTrackResults) {
-        return pushTrackResultsPromise(allTrackResults);
+        return pushDiffTrackResultsPromise(tracksBefore, allTrackResults, forceSendAllWagers);
       })
       .then(function() {
         return pushDiffWagers(wagersBefore, tWagers, forceSendAllWagers);
@@ -442,16 +446,21 @@
     });
   }
 
-  function pushTrackResultsPromise(allTrackResults) {
+  function pushDiffTrackResultsPromise(tracksBefore, tracksAfter, forceSendAllTracks) {
     return new Promise(function(resolve) {
-      if (allTrackResults.length === 0) {
+      if (tracksAfter.length === 0) {
         console.debug(`No tracks to send. Doing nothing.`); // eslint-disable-line
 
         return resolve();
       }
 
+      if (!forceSendAllTracks && !areTracksDifferent(tracksBefore, tracksAfter)) { // eslint-disable-line
+        console.debug(`No changes to tracks. Nothing to do.`); // eslint-disable-line
 
-      allTrackResults.forEach(function(trackResult) {
+        return resolve();
+      }
+
+      tracksAfter.forEach(function(trackResult) {
         const data = {};
 
         console.debug(`Sending track results...`, trackResult); // eslint-disable-line
@@ -463,8 +472,11 @@
           callback: resolve
         });
       });
+
+      pwnies.tracksSent = tracksAfter;
     });
   }
+
 
   function pushDiffWagers(wagersBefore, wagersAfter, forceSendAllWagers) {
     return new Promise(function(resolve) {
@@ -473,6 +485,13 @@
 
       wagersBefore = wagersBefore.splice(0, 30); // Limit to 30 most recent
       wagersAfter = wagersAfter.splice(0, 30); // Limit to 30 most recent
+
+      pwnies.PubNub.state({
+        channel: WAGERS_CHANNEL,
+        state: getUserInfoSlim(),
+        callback: function() {},
+        error: function() {}
+      });
 
       if (!forceSendAllWagers && _.isEqual(wagersBefore, wagersAfter)) { // eslint-disable-line
         console.debug(`No changes to wagers. Nothing to do.`); // eslint-disable-line
@@ -580,20 +599,60 @@
     });
   }
 
-  function removeFinishedTracks(tracks) {
-    const MAX_FINISHED_TRACK_SEND = 3;
+  function areTracksDifferent(a, b) {
+    if ((!a && b) || (a && !b)) {
+      return true;
+    }
 
-    const removalCodes = pwnies
+    if (a.length !== b.length) {
+      console.debug(`Differences were found in tracks lengths.`, {expected: a.length,  actual: b.length}); // eslint-disable-line
+
+      return true;
+    }
+
+    const aSorted = _.orderBy(a, function(t) {
+      return t.BrisCode;
+    });
+
+    const bSorted = _.orderBy(b, function(t) {
+      return t.BrisCode;
+    });
+
+    const isDiff = aSorted.find(function(at, aIndex) {
+      const bt = bSorted[aIndex];
+
+      if (at.races.length !== bt.races.length) {
+        console.debug(`Differences were found in races length.`, {expected: at.races.length, actual: bt.races.length, racesA: at.races, racesB: bt.races}); // eslint-disable-line
+
+        return true;
+      }
+      else if (!_.isEqual(at.nextRace, bt.nextRace)) {
+        console.debug(`Differences were found in nextRaces.`, {expected: at.nextRace, actual: bt.nextRace}); // eslint-disable-line
+
+        return true;
+      }
+
+      return false;
+    });
+
+    return !!isDiff;
+  }
+
+  function removeFinishedTracks(tracks) {
+    const closedTrackCodes = pwnies
       .closedTracks
-      .filter(function(t) {
-        return t.count > MAX_FINISHED_TRACK_SEND;
-      })
       .map(function(t) {
         return t.BrisCode;
       });
 
     tracks = tracks.filter(function(t) { // Preemptively remove tracks
-      return removalCodes.indexOf(t.BrisCode) === -1;
+      const remove = closedTrackCodes.indexOf(t.BrisCode) > -1;
+
+      if (remove) {
+        console.debug(`Removing track ${t.BrisCode} from send list because it is closed.`); // eslint-disable-line
+      }
+
+      return !remove;
     });
 
     const closedTracks = tracks.filter(function(t) {
@@ -607,15 +666,28 @@
 
       if (!currCT) {
         pwnies.closedTracks.push({
-          BrisCode: ct.BrisCode,
-          count: 1
+          BrisCode: ct.BrisCode
         });
+      }
+    });
 
-        return;
+    const notOpenTrackCodes = tracks
+      .filter(function(t) {
+        return t.nextRace.Status === 'Open' && t.nextRace.Mtp === 99;
+      })
+      .map(function(t) {
+        return t.BrisCode;
+      })
+      ;
+
+    tracks = tracks.filter(function(t) { // Preemptively remove tracks
+      const remove = notOpenTrackCodes.indexOf(t.BrisCode) > -1;
+
+      if (remove) {
+        console.debug(`Removing track ${t.BrisCode} from send list because it is not open yet.`); // eslint-disable-line
       }
-      else {
-        currCT.count++;
-      }
+
+      return !remove;
     });
 
     return tracks;
@@ -702,7 +774,9 @@
     const obj = JSON.parse(sessionStorage.getItem('GlobalData')); // eslint-disable-line
 
     if (obj) {
-      const key = Object.keys(obj)[0];
+      const key = Object.keys(obj).find(function(key) {
+        return key.indexOf('classic') > -1;
+      });
       const user = obj[key];
 
       return {
