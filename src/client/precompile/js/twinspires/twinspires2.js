@@ -1,10 +1,15 @@
 (function() {
   const pwnies = {
-    user: getUserInfo()
+    user: getUserInfo(),
+    tick: 0,
+    toc: 10,
+    closedTracks: []
   };
   const WAGERS_CHANNEL = 'v2-wagers';
-  // const threeSeconds = 1000 * 3;
-  const fiveSeconds = 1000 * 5;
+  const MESSAGE_TYPE_TRACK_RESULT = 'trackResult';
+  const MESSAGE_TYPE_WAGERS = 'wagers';
+  const threeSeconds = 1000 * 3;
+  // const sevenSeconds = 1000 * 7;
   // const thirtySeconds = 1000 * 30;
   // const oneMinute = 1000 * 30;
 
@@ -29,7 +34,9 @@
       .then(function() {
         return initializePoolTypes();
       })
-      .then(function() {
+      .then(function(poolTypes) {
+        pwnies.poolTypes = poolTypes;
+
         return initalizeTracks();
       })
       .then(function() {
@@ -60,7 +67,6 @@
     const scripts = [
       '//cdn.pubnub.com/pubnub-3.7.18.min.js',
       '//cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js',
-      '//cdnjs.cloudflare.com/ajax/libs/async/1.5.2/async.min.js',
       '//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'
     ];
 
@@ -83,7 +89,8 @@
       const css = `
         <style id='css-sync'>
           .noshow {display:none;height:0;width:0;}
-          #syncButton {position: absolute;bottom: 22px;right: 25px;z-index: 99999;height: 33px;width: 105px;border-radius:3px;border:1px solid transparent;}
+          #syncButton {position: absolute;bottom: 22px;right: 25px;z-index: 99999;height: 33px;width: 105px;border-radius:3px;border:1px solid transparent;background-color: #ccc}
+          #syncButton:disabled {background-color: #ccc}
           #syncButton div {height:14px;width:14px;border-radius:14px;background-color:#bbb;margin-right:10px;float:right;}
           #syncButton div.on {background-color:#4BBA4B;}
         </style>
@@ -267,13 +274,14 @@
 
   function wagerCheckingStop() {
     pwnies.isSyncing = false;
+    pwnies.tick = 0;
 
-    if (!pwnies.intervals) {
-      pwnies.intervals = {};
+    if (!pwnies.timeouts) {
+      pwnies.timeouts = {};
     }
 
-    if (pwnies.intervals.wc) {
-      clearInterval(pwnies.intervals.wc);
+    if (pwnies.timeouts.wc) {
+      clearTimeout(pwnies.timeouts.wc);
     }
 
     setSyncState(pwnies.isSyncing);
@@ -283,38 +291,223 @@
   function wagerCheckingStart() {
     pwnies.isSyncing = true;
 
-    if (!pwnies.intervals) {
-      pwnies.intervals = {};
-    }
-
-    if (pwnies.intervals.wc) {
-      clearInterval(pwnies.intervals.wc);
-    }
-
     setSyncState(pwnies.isSyncing);
     updateSyncButton(pwnies.isSyncing);
 
-    processWagers(); // Process immediately on first run
-
-    pwnies.intervals.wc = setInterval(function() { // eslint-disable-line
-      processWagers();
-    }, fiveSeconds);
+    processWagers(true);
   }
 
-  function processWagers() {
-    getWagers()
+  function processWagers(forceSendAllWagers) {
+    const wagersBefore = pwnies.wagers || [];
+    let tWagers = [];
+
+    getWagersPromise()
       .then(function(wagers) {
-        console.debug(`Wagers data received...`, wagers); // eslint-disable-line
+        wagers.sort(function(a, b) {
+          return b.timestamp - a.timestamp;
+        });
+
+        pwnies.wagers = wagers.concat();
+        tWagers = wagers.concat();
+
+        console.debug(`Wagers data received...`, tWagers); // eslint-disable-line
+
+        return wagers;
+      })
+      .then(function() {
+        return getUniqueTracksPromise(pwnies.wagers);
+      })
+      .then(function(uniqueTracks) {
+        return getTracksMtpPromise(uniqueTracks);
+      })
+      .then(function(tracks) {
+        return getAllTrackResultsPromise(removeFinishedTracks(tracks));
+      })
+      .then(function(allTrackResults) {
+        return pushTrackResultsPromise(allTrackResults);
+      })
+      .then(function() {
+        return pushDiffWagers(wagersBefore, tWagers, forceSendAllWagers);
+      })
+      .then(function() {
+        // Go do it all again
+        if (!pwnies.timeouts) {
+          pwnies.timeouts = {};
+        }
+
+        if (pwnies.timeouts.wc) {
+          clearTimeout(pwnies.timeouts.wc);
+        }
+
+        if (pwnies.isSyncing) {
+          pwnies.tick++;
+
+          const sendAllWagers = pwnies.tick % pwnies.toc === 0;
+
+          pwnies.timeouts.wc = setTimeout(function() { // eslint-disable-line
+            processWagers(sendAllWagers);
+          }, threeSeconds);
+        }
       })
       ;
   }
 
-  function getWagers() {
+  function getWagersPromise() {
     return new Promise(function(resolve) {
       const cb = `&cb=${(new Date()).getTime()}`;
 
       $.getJSON(pwnies.wagerCreds.wagersUrl + cb, function(data) {
+        return resolve(slimWagers((data.Wagers || [])));
+      });
+    });
+  }
+
+  function getUniqueTracksPromise(wagers) {
+    return new Promise(function(resolve) {
+      const uniqTracks = [];
+      const tracks = wagers.map(function(w) {
+        return pwnies.tracks.find(function(t) {
+          return t.EventCode === w.eventCode;
+        });
+      });
+
+      tracks.forEach(function(t) {
+        const uTrack = uniqTracks.find(function(u) {
+          return t.BrisCode === u.BrisCode;
+        });
+
+        if (!uTrack) {
+          uniqTracks.push(t);
+        }
+      });
+
+      return resolve(uniqTracks);
+    });
+  }
+
+  function getAllTrackResultsPromise(tracks) {
+    const promises = tracks.map(getTrackResultsPromise);
+
+    return Promise.all(promises);
+  }
+
+  function getTrackResultsPromise(track) {
+    const lookups = {
+      'thoroughbred': 1,
+      'harness': 2
+    };
+    const url = `/secure-bin/results_tracks.cgi?track=${track.BrisCode}&race=all&type=${lookups[track.TrackType.toLowerCase()]}`;
+
+    return new Promise(function(resolve) {
+      console.debug(`Fetching ${track.BrisCode} track results...`, url); // eslint-disable-line
+
+      $.get(url, function onSuccess(html) { // eslint-disable-line
+        const data = parseResultsToJson(html) || {};
+
+        data.track = {
+          BrisCode: track.BrisCode,
+          DisplayName: track.DisplayName,
+          nextRace: track.nextRace
+        };
+
         return resolve(data);
+      });
+    });
+  }
+
+  function getTracksMtpPromise(tracks) {
+    const wc = pwnies.wagerCreds;
+
+    return new Promise(function(resolve) {
+      const url = `/php/fw/php_BRIS_BatchAPI/2.3/Tote/CurrentRace?`
+        + `username=${wc.USERNAME}&password=${wc.PASSWORD}`
+        + `&ip=${wc.CDI_CLIENT_IP}&affid=${wc.CDI_SAID}&output=json`;
+
+      $.get(url, function(data) {
+        const mtps = data.CurrentRace;
+
+        return resolve(tracks.map(function(t) {
+          const mtp = mtps.find(function(m) {
+            return t.BrisCode.toLowerCase() === m.BrisCode.toLowerCase();
+          });
+
+          mtp.postTimestamp = moment.tz(mtp.PostTime, 'America/New_York').toDate().getTime(); // eslint-disable-line
+          mtp.firstPostTimestamp = moment.tz(mtp.FirstPostTime, 'America/New_York').toDate().getTime(); // eslint-disable-line
+
+          t.nextRace = mtp;
+
+          return t;
+        }));
+      });
+    });
+  }
+
+  function pushTrackResultsPromise(allTrackResults) {
+    return new Promise(function(resolve) {
+      if (allTrackResults.length === 0) {
+        console.debug(`No tracks to send. Doing nothing.`); // eslint-disable-line
+
+        return resolve();
+      }
+
+
+      allTrackResults.forEach(function(trackResult) {
+        const data = {};
+
+        console.debug(`Sending track results...`, trackResult); // eslint-disable-line
+
+        data[MESSAGE_TYPE_TRACK_RESULT] = trackResult;
+        pwnies.PubNub.publish({
+          channel: WAGERS_CHANNEL,
+          message: data,
+          callback: resolve
+        });
+      });
+    });
+  }
+
+  function pushDiffWagers(wagersBefore, wagersAfter, forceSendAllWagers) {
+    return new Promise(function(resolve) {
+      const data = {};
+      let diffWagers = [];
+
+      wagersBefore = wagersBefore.splice(0, 30); // Limit to 30 most recent
+      wagersAfter = wagersAfter.splice(0, 30); // Limit to 30 most recent
+
+      if (!forceSendAllWagers && _.isEqual(wagersBefore, wagersAfter)) { // eslint-disable-line
+        console.debug(`No changes to wagers. Nothing to do.`); // eslint-disable-line
+
+        return resolve();
+      }
+
+      if (forceSendAllWagers) {
+        diffWagers = wagersAfter;
+
+        console.debug(`Sending bulk wagers...`, diffWagers); // eslint-disable-line
+      }
+      else {
+        wagersAfter.forEach(function(a) {
+          const foundBW = wagersBefore.find(function(b) {
+            return a.id === b.id;
+          });
+
+          if (!foundBW) {
+            diffWagers.push(a); // Didn't find it, must be new
+          }
+          else if (!_.isEqual(a, foundBW)) { // eslint-disable-line
+            diffWagers.push(a); // Found it, but has changed
+          }
+        });
+
+        console.debug(`Sending diff wagers...`, diffWagers); // eslint-disable-line
+      }
+
+      data[MESSAGE_TYPE_WAGERS] = diffWagers;
+
+      pwnies.PubNub.publish({
+        channel: WAGERS_CHANNEL,
+        message: data,
+        callback: resolve
       });
     });
   }
@@ -340,8 +533,6 @@
     const $span = $btn.find('span');
     const $indicator = $btn.find('div');
 
-    $btn.removeAttr('disabled');
-
     if (isSyncing) {
       $span.text('Sync: ON');
       $indicator.addClass('on');
@@ -350,6 +541,161 @@
       $span.text('Sync: OFF');
       $indicator.removeClass('on');
     }
+
+    $btn.attr('disabled', 'disabled');
+
+    setTimeout(function() { // eslint-disable-line
+      $btn.removeAttr('disabled');
+    }, 750);
+  }
+
+  function slimWagers(wagers) {
+    const offsetTime = 1000 * 10; // Their server times are a few seconds slow
+
+    if (!wagers) {
+      return;
+    }
+
+    return wagers.map(function(w) {
+      const newWager = {};
+
+      newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // eslint-disable-line
+      newWager.id = w.serialNumber;
+      newWager.user = _.pick(pwnies.user, ['email', 'firstName', 'lastName', 'accountNum']); // eslint-disable-line
+      newWager.betAmount = parseFloat(w.totalCost, 10);
+      newWager.payoutAmount = parseFloat(w.payoutAmount, 10);
+      newWager.type = pwnies.poolTypes.find(function(pt) {
+        return pt.Code === w.poolType;
+      });
+      newWager.selections = w.runnersList;
+      newWager.race = {id: w.race};
+      newWager.track = pwnies.tracks.find(function(t) {
+        return t.EventCode === w.eventCode;
+      });
+      newWager.eventCode = newWager.track.EventCode;
+      newWager.status = w.status;
+      newWager.refundAmount = w.refundAmount;
+
+      return newWager;
+    });
+  }
+
+  function removeFinishedTracks(tracks) {
+    const MAX_FINISHED_TRACK_SEND = 3;
+
+    const removalCodes = pwnies
+      .closedTracks
+      .filter(function(t) {
+        return t.count > MAX_FINISHED_TRACK_SEND;
+      })
+      .map(function(t) {
+        return t.BrisCode;
+      });
+
+    tracks = tracks.filter(function(t) { // Preemptively remove tracks
+      return removalCodes.indexOf(t.BrisCode) === -1;
+    });
+
+    const closedTracks = tracks.filter(function(t) {
+      return t.nextRace.Status === 'Closed';
+    });
+
+    closedTracks.forEach(function(ct) {
+      const currCT = pwnies.closedTracks.find(function(t) {
+        return t.BrisCode === ct.BrisCode;
+      });
+
+      if (!currCT) {
+        pwnies.closedTracks.push({
+          BrisCode: ct.BrisCode,
+          count: 1
+        });
+
+        return;
+      }
+      else {
+        currCT.count++;
+      }
+    });
+
+    return tracks;
+  }
+
+  function parseResultsToJson(html) {
+    if ($('.data_hl').length) { // eslint-disable-line
+      return null; // No results data
+    }
+
+    const data = {races: []};
+    const $wpsTbls = $(html).find('.toteboard:even'); // eslint-disable-line
+    const $exTbls = $(html).find('.toteboard:odd'); // eslint-disable-line
+
+    $(html).find('th[colspan="4"] a,script').remove(); // eslint-disable-line
+
+    const raceIds = [];
+    const regex = /Race (\d+)/ig;
+
+    $(html).find('th[colspan="4"]').each(function(index, th) { // eslint-disable-line
+      const matches = $(th).text().match(regex); // eslint-disable-line
+
+      raceIds.push(parseInt(matches[0].replace('Race ', ''), 0));
+    });
+
+    $wpsTbls.each(function(i, tbl) {
+      const $tbl = $(tbl); // eslint-disable-line
+      const $xbl = $($exTbls[i]); // eslint-disable-line
+      const race = {
+        id: raceIds[i],
+        wps: [],
+        exotics: []
+      };
+
+      const $rows = $tbl.find('tr:gt(1)');
+
+      if ($rows.length === 0) {
+        return null; // No results data
+      }
+
+      $rows.each(function(j, row) {
+        const $row = $(row); // eslint-disable-line
+        const payout = {
+          place: j + 1
+        };
+
+        const winAmountDisplay = $row.find('td:eq(1)').text().replace(/^[\.]$/ig, '');
+        const placeAmountDisplay = $row.find('td:eq(2)').text().replace(/^[\.]$/ig, '');
+        const showAmountDisplay = $row.find('td:eq(3)').text().replace(/^[\.]$/ig, '');
+
+        payout.horse = $row.find('td:eq(0)').text();
+        payout.winAmount = parseFloat(winAmountDisplay.replace(/[^0-9\.]+/ig, ''), 0) || 0;
+        payout.placeAmount = parseFloat(placeAmountDisplay.replace(/[^0-9\.]+/ig, ''), 0) || 0;
+        payout.showAmount = parseFloat(showAmountDisplay.replace(/[^0-9\.]+/ig, ''), 0) || 0;
+
+        race.wps.push(payout);
+      });
+
+      const $xRows = $xbl.find('tr:gt(1)');
+
+      $xRows.each(function(k, row) {
+        const $row = $(row); // eslint-disable-line
+
+        const payout = {};
+
+        const wagerType = $row.find('td:eq(0)').text().trim();
+        const winAmountDisplay = $row.find('td:eq(2)').text().trim();
+
+        payout.type = wagerType.replace(/[\$0-9\. ]/ig, '');
+        payout.denomination = parseFloat(wagerType.replace(/[^0-9\.]/ig, ''), 0) || 0;
+        payout.winCombo = $row.find('td:eq(1)').text().split('/');
+        payout.winAmount = parseFloat(winAmountDisplay.replace(/[^0-9\.]/ig, ''), 0) || 0;
+
+        race.exotics.push(payout);
+      });
+
+      data.races.push(race);
+    });
+
+    return data;
   }
 
   function getUserInfo() {
@@ -382,409 +728,4 @@
       isSyncing: data.isSyncing
     };
   }
-
-  // function refreshRaceResults() {
-  //   const callbackFns = [];
-  //   let tracks = _.map(window.pwnies.wagers || [], function(w) {
-  //     return window.pwnies.tracks.find(function(t) { return t.EventCode === w.eventCode; }).BrisCode;
-  //   });
-
-  //   tracks = _.uniq(tracks);
-
-  //   if (!tracks.length) {
-  //     return;
-  //   }
-
-  //   console.debug('Refreshing race results...', tracks);
-  //   window.pwnies.mtps = getTrackMtps();
-
-  //   tracks.forEach(function(tr) {
-  //     const track = window.pwnies.tracks.find(function(t) { return t.BrisCode === tr; });
-  //     callbackFns.push(function(cb) {
-  //       getRaceResults(track, cb);
-  //     });
-  //   });
-
-  //   async.parallel(callbackFns, onComplete);
-
-  //   function onComplete(err, results) {
-  //     console.debug('... race results received.', results);
-
-  //     if (err) {
-  //       return;
-  //     }
-
-  //     pushRaceResults(results);
-  //   }
-  // }
-
-  // function getTrackMtps() {
-  //   const $tracks = $('body').find('.clsTrackButton');
-  //   const tracks = [];
-
-  //   $tracks.each(function(index, t) {
-  //     var $t = $(t);
-  //     var track = {};
-
-  //     track.name = $t.attr('title');
-  //     track.BrisCode = $t.attr('id').split('_')[1];
-  //     track.type = $t.attr('id').split('_')[2];
-
-  //     if($t.find('[id^="finish_"]:visible').length) {
-  //       track.currentRace = {
-  //         id: 99,
-  //         mtp: 99
-  //       }
-  //     }
-  //     else {
-  //       track.currentRace = {
-  //         id: parseInt($t.find('.clsRaceNum').text(), 0),
-  //         mtp: convertToMtp($t.find('.clsRaceMtp').text())
-  //       };
-  //     }
-
-  //     track.currentRace.level = convertMtpToLevel(track.currentRace.mtp);
-
-  //     tracks.push(track);
-  //   });
-
-  //   window.tracks = tracks;
-
-  //   return tracks;
-
-  //   function convertToMtp(text) {
-  //     text = text || '';
-
-  //     switch (text.toLowerCase()) {
-  //       case '99':
-  //         // Not started, races are not running
-  //         return 99;
-  //       case 'off':
-  //         // Race is currently being ran
-  //         return -1;
-  //       default:
-  //         return parseInt(text, 0);
-  //     }
-  //   }
-
-  //   function convertMtpToLevel(mtp) {
-  //     switch (mtp) {
-  //       case 99:
-  //         return 'NOT_RUNNING';
-  //       case -1:
-  //         return 'RUNNING';
-  //       default:
-  //         if (mtp === 0) {
-  //           return 'NOW';
-  //         }
-  //         else if (mtp >= 1 && mtp <= 2) {
-  //           return 'VERY_SOON';
-  //         }
-  //         else if (mtp > 2 && mtp <= 5) {
-  //           return 'SOON';
-  //         }
-  //         else if (mtp > 5 && mtp <= 7) {
-  //           return 'KINDA_SOON';
-  //         }
-  //         else if (mtp >= 8) {
-  //           return 'NOT_SOON'
-  //         }
-  //     }
-  //   }
-  // }
-
-  // function readCookie(name) {
-
-  //   return (name = new RegExp('(?:^|;\\s*)' + ('' + name).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&') + '=([^;]*)').exec(document.cookie)) && name[1];
-  // }
-
-  // function toggleSync() {
-  //   const isSyncing = window.pwnies.isSyncing = !window.pwnies.isSyncing;
-
-  //   updateSyncButton(isSyncing);
-
-  //   if (!isSyncing) {
-  //     clearInterval(window.__wagerInterval);
-  //     clearInterval(window.__allWagersInterval);
-  //     clearInterval(window.__resultsInterval);
-  //     clearTimeout(window.__nowAllWagers);
-  //     clearTimeout(window.__nowRefreshRaceResults);
-
-  //     PubNub.state({
-  //       channel: WAGER_SYNC_CHANNEL,
-  //       state: getUserState(),
-  //       callback: function() {
-  //         console.debug('Stopped syncing.')
-  //       },
-  //       error: function() {}
-  //     });
-
-  //     window.pwnies.hasSyncedBefore = false;
-
-  //     return;
-  //   }
-
-  //   PubNub.state({
-  //     channel: WAGER_SYNC_CHANNEL,
-  //     state: getUserState(),
-  //     callback: function() {
-  //       console.debug('Started syncing.')
-  //     },
-  //     error: function() {}
-  //   });
-
-  //   const threeSeconds = 1000 * 3;
-  //   const fiveSeconds = 1000 * 5;
-  //   const thirtySeconds = 1000 * 30;
-  //   const twoMinutes = 1000 * 60 * 2;
-
-  //   window.__wagerInterval = setInterval(diffWagers, threeSeconds);
-  //   window.__allWagersInterval = setInterval(allWagers, twoMinutes);
-  //   window.__resultsInterval = setInterval(refreshRaceResults, thirtySeconds);
-
-  //   // Fire near now the first go round
-  //   window.__nowAllWagers = setTimeout(allWagers, threeSeconds);
-  //   window.__nowRefreshRaceResults = setTimeout(refreshRaceResults, fiveSeconds);
-
-  //   function diffWagers() {
-  //     const cb = '&cb=' + (new Date()).getTime();
-
-  //     $.getJSON(window.pwnies.wagerCreds.wagersUrl + cb, function(data) {
-  //       onWagersReturned(data);
-  //     });
-  //   }
-
-  //   function allWagers() {
-  //     const cb = '&cb=' + (new Date()).getTime();
-
-  //     $.getJSON(window.pwnies.wagerCreds.wagersUrl + cb, function(data) {
-  //       onWagersReturned(data, true);
-  //     });
-  //   }
-
-  //   function onWagersReturned(data, forceSendAll) {
-  //     let wagers = data.Wagers;
-
-  //     if (window.pwnies.hasSyncedBefore && !forceSendAll) {
-  //       wagers = _.differenceWith(data.Wagers, window.pwnies.wagers, _.isEqual);
-  //     }
-
-  //     pushWagers(wagers, window.pwnies.hasSyncedBefore);
-
-  //     window.pwnies.wagers = data.Wagers;
-  //     window.pwnies.hasSyncedBefore = true;
-  //   }
-  // }
-
-  // function pushRaceResults(results) {
-  //   const RESULTS_BULK_CHANNEL = 'results-all';
-  //   const tracks = [];
-
-  //   (results || []).forEach(function(result) {
-  //     const track = {
-  //       BrisCode: result.track.BrisCode,
-  //       mtp: result.track.mtp,
-  //       races: []
-  //     };
-
-  //     (result.races || []).forEach(function(race) {
-  //       track.races.push({
-  //         race: race.id,
-  //         win: race.wps[0],
-  //         place: race.wps[1],
-  //         show: race.wps[2],
-  //         exotics: race.exotics
-  //       });
-  //     });
-
-  //     tracks.push(track);
-  //   });
-
-  //   if (tracks.length) {
-  //     tracks.forEach(function(t) {
-  //       console.debug('Pushing race results...', t);
-  //       window.PubNub.publish({
-  //         channel: RESULTS_BULK_CHANNEL,
-  //         message: t
-  //       });
-  //     });
-
-  //     window.pwnies.results = tracks;
-  //   }
-  // }
-
-  // function pushWagers(wagers, isDiff) {
-  //   if (!wagers || !wagers.length) {
-  //     return;
-  //   }
-
-  //   const slimWagers = convertWagersToSlimObjects(wagers);
-
-  //   if (!!isDiff) {
-  //     console.debug('Pushing wagers diff...', slimWagers);
-  //     window.PubNub.publish({
-  //       channel: WAGER_ALL_CHANNEL,
-  //       message: slimWagers
-  //     });
-  //   }
-  //   else {
-  //     console.debug('Pushing wagers bulk...', slimWagers);
-  //     window.PubNub.publish({
-  //       channel: WAGER_ALL_CHANNEL,
-  //       message: slimWagers
-  //     });
-  //   }
-  // }
-
-  // function convertWagersToSlimObjects(wagers) {
-  //   if (!wagers || !window.pwnies.poolTypes || !window.pwnies.poolTypes.length) {
-  //     return [];
-  //   }
-
-  //   return wagers.map(function(w) {
-  //     const offsetTime = 1000 * 10; // Their server times are a few seconds slow
-  //     const newWager = {};
-
-  //     newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // Wager dates are local to America/Los_Angeles
-  //     newWager.id = w.serialNumber;
-  //     newWager.user = _.pick(window.pwnies.user, ['email', 'firstName', 'lastName', 'accountNum']);
-  //     newWager.betAmount = parseFloat(w.totalCost, 10);
-  //     newWager.payoutAmount = parseFloat(w.payoutAmount, 10);
-  //     newWager.type = window.pwnies.poolTypes.find(function(pt) { return pt.Code === w.poolType; });
-  //     newWager.selections = w.runnersList;
-  //     newWager.race = {id: w.race};
-  //     newWager.track = window.pwnies.tracks.find(function(t) { return t.EventCode === w.eventCode; });
-  //     newWager.eventCode = newWager.track.EventCode;
-  //     newWager.status = w.status;
-  //     newWager.refundAmount = w.refundAmount;
-
-  //     return newWager;
-  //   });
-
-  //   // baseAmount: 1
-  //   // conditionalWager: "false"
-  //   // conditions: "none"
-  //   // eventCode: "DUN"
-  //   // eventDate: "2016-01-21"
-  //   // failedReason: ""
-  //   // frozenWager: "false"
-  //   // futureWager: "false"
-  //   // leaderBoardWager: "false"
-  //   // payoutAmount: 0
-  //   // placedDate: "2016-01-21 06:57:13"
-  //   // poolType: "WN"
-  //   // race: 1
-  //   // refundAmount: 0
-  //   // runnersList: "6"
-  //   // serialNumber: "ecf9d-f06bb"
-  //   // status: "PAID"
-  //   // totalCost: 1
-  // }
-
-  // function getRaceResults(track, callback) {
-  //   callback = typeof callback === 'function' ? callback : function() {};
-
-  //   const lookups = {
-  //     'thoroughbred': 1,
-  //     'harness': 2
-  //   };
-
-  //   const url = '/secure-bin/results_tracks.cgi?track=' + track.BrisCode + '&race=all&type=' + lookups[track.TrackType.toLowerCase()];
-
-  //   console.debug('Fetching race results...', url);
-
-  //   $.get(url, function onSuccess(html) {
-  //     const data = parseResultsToJson(html) || {};
-
-  //     data.track = {
-  //       BrisCode: track.BrisCode
-  //     };
-
-  //     const foundMtp = window.pwnies.mtps.find(function(mtp) {
-  //       return mtp.BrisCode.toLowerCase() === data.track.BrisCode.toLowerCase();
-  //     });
-
-  //     if (foundMtp) {
-  //       data.track.mtp = foundMtp.currentRace;
-  //     }
-
-  //     return callback(null, data);
-  //   });
-  // }
-
-  // function parseResultsToJson(html) {
-  //   if ($('.data_hl').length) {
-  //     return null; // No results data
-  //   }
-
-  //   const data = {races: []};
-  //   const $wpsTbls = $(html).find('.toteboard:even');
-  //   const $exTbls = $(html).find('.toteboard:odd');
-
-  //   $(html).find('th[colspan="4"] a,script').remove();
-
-  //   const raceIds = [];
-  //   const regex = /Race (\d+)/ig;
-
-  //   $(html).find('th[colspan="4"]').each(function(index, th) {
-  //     const matches = $(th).text().match(regex);
-  //     raceIds.push(parseInt(matches[0].replace('Race ', ''), 0));
-  //   });
-
-  //   $wpsTbls.each(function(i, tbl) {
-  //     const $tbl = $(tbl);
-  //     const $xbl = $($exTbls[i]);
-  //     const race = {
-  //       id: raceIds[i],
-  //       wps: [],
-  //       exotics: []
-  //     };
-
-  //     const $rows = $tbl.find('tr:gt(1)');
-
-  //     if ($rows.length === 0) {
-  //       return null; // No results data
-  //     }
-
-  //     $rows.each(function(j, row) {
-  //       const $row = $(row);
-  //       const payout = {
-  //         place: j + 1
-  //       };
-
-  //       const winAmountDisplay = $row.find('td:eq(1)').text().replace(/^[\.]$/ig, '');
-  //       const placeAmountDisplay = $row.find('td:eq(2)').text().replace(/^[\.]$/ig, '');
-  //       const showAmountDisplay = $row.find('td:eq(3)').text().replace(/^[\.]$/ig, '');
-
-  //       payout.horse = $row.find('td:eq(0)').text();
-  //       payout.winAmount = parseFloat(winAmountDisplay.replace(/[^0-9\.]+/ig, ''), 0) || 0;
-  //       payout.placeAmount = parseFloat(placeAmountDisplay.replace(/[^0-9\.]+/ig, ''), 0) || 0;
-  //       payout.showAmount = parseFloat(showAmountDisplay.replace(/[^0-9\.]+/ig, ''), 0) || 0;
-
-  //       race.wps.push(payout);
-  //     });
-
-  //     const $xRows = $xbl.find('tr:gt(1)');
-
-  //     $xRows.each(function(k, row) {
-  //       const $row = $(row);
-
-  //       const payout = {};
-
-  //       const wagerType = $row.find('td:eq(0)').text().trim();
-  //       const winAmountDisplay = $row.find('td:eq(2)').text().trim();
-
-  //       payout.type = wagerType.replace(/[\$0-9\. ]/ig, '');
-  //       payout.denomination = parseFloat(wagerType.replace(/[^0-9\.]/ig, ''), 0) || 0;
-  //       payout.winCombo = $row.find('td:eq(1)').text().split('/');
-  //       payout.winAmount = parseFloat(winAmountDisplay.replace(/[^0-9\.]/ig, ''), 0) || 0;
-
-  //       race.exotics.push(payout);
-  //     });
-
-  //     data.races.push(race);
-  //   });
-
-  //   return data;
-  // }
 })();

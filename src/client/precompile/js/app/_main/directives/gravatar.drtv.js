@@ -46,6 +46,7 @@
         const styleEl = `
           <style id='${$scope.class}'>
             .${$scope.class} {
+              vertical-align: text-top;
               height: ${$scope.size}px;
               width: ${$scope.size}px;
               border-radius: ${$scope.size}px;

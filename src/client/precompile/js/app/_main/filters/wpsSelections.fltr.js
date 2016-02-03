@@ -1,0 +1,32 @@
+(function() {
+  'use strict';
+
+  angular
+    .module('app.filters')
+    .filter('wpsSelections', wpsSelections)
+    ;
+
+  /* @ngInject */
+  function wpsSelections() {
+    return function(wps) {
+      if (!wps) {
+        return;
+      }
+
+      const first = wps[0];
+      const second = wps[1];
+      const third = wps[2];
+      let str = '';
+
+      if (first && second) {
+        str += `${first.horse}/${second.horse}`;
+      }
+
+      if (third) {
+        str += `/${third.horse}`;
+      }
+
+      return str;
+    };
+  }
+})();

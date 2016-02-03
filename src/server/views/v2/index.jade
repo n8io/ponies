@@ -3,4 +3,22 @@ extends ../_layouts/master/_
 append body-content
   #content(layout='row', flex, layout-margin='20', data-ng-controller='SlimWagersController as swc').bump-bottom
     md-content.width-100pct
-      pre.code {{swc | json}}
+      table(cellspacing='0', cellpadding='0').width-100pct
+        tr(data-ng-repeat='track in swc.tracks | orderBy:["-nextRace.Status", "nextRace.Mtp", "nextRace.RaceStatus", "-nextRace.postTimestamp", "DisplayName"]')
+          td
+            .track-outer(data-ng-class='{finished: track.nextRace.Status.toLowerCase() == "closed"}')
+              track(track='track')
+              table(cellspacing='0', cellpadding='0', data-ng-hide='track.hide').width-100pct
+                tr(data-ng-repeat='race in track.races | orderBy:["-id"]', data-ng-show='race.wagers')
+                  td(data-ng-class='{final: !!race.wps}').race-cell
+                    race(race='race')
+                    table(cellspacing='0', cellpadding='0', data-ng-if='!race.hide').width-100pct
+                      tr(data-ng-repeat='wager in race.wagers | orderBy:["timestamp"]')
+                        td
+                          div(class='wager-container')
+                            wager(wager='wager')
+              .clearfix
+      - if (locals.showDebug)
+        pre.code {{swc.slimTracks | json}}
+    sync-status(status='swc.me.isSyncing')
+    presence(presences='swc.presences')

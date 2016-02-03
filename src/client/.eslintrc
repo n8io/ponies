@@ -6,7 +6,8 @@
     "angular": true,
     "window": true,
     "document": true,
-    "$": true
+    "$": true,
+    "_": true
   },
   "plugins": [
     "angular"

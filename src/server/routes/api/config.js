@@ -25,6 +25,13 @@ function routeHandler(app, auth) {
       ])
     };
 
+    cfg.user = {
+      email: cfg.user.email,
+      firstName: cfg.user.givenName,
+      lastName: cfg.user.surname,
+      fullName: cfg.user.fullName
+    };
+
     return res.json(cfg);
   }
 }

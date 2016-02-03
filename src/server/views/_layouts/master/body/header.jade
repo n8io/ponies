@@ -7,10 +7,10 @@ md-toolbar(layout='row')
         .float-left.hide-xs #{title}
         .clearfix
     span(flex)
-    - if (!user)
-      md-button(href='/admin', aria-label='Log In') Log In
+    - if (!locals.user)
+      md-button(href='/login', aria-label='Log In') Log In
     - else
-      span.welcome Hi #{user.givenName}
+      span.welcome Hi #{locals.user.givenName}
       span &nbsp;&nbsp;
       a.md-link(href='/bookmark', target='_bookmark', title='Help').no-underline
         i.fa.fa-question
