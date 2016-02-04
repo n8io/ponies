@@ -302,7 +302,7 @@
 
   function processWagers(forceSendAllWagers) {
     const wagersBefore = pwnies.wagers || [];
-    const tracksBefore = pwnies.tracksSent || [];
+    const tracksBefore = (pwnies.tracksSent || []).concat();
     let tWagers = [];
 
     getWagersPromise()
@@ -325,7 +325,11 @@
         return getTracksMtpPromise(uniqueTracks);
       })
       .then(function(tracks) {
-        return getAllTrackResultsPromise(removeFinishedTracks(tracks));
+        if (forceSendAllWagers) {
+          tracks = removeStaticTracks(tracks);
+        }
+
+        return getAllTrackResultsPromise(tracks);
       })
       .then(function(allTrackResults) {
         return pushDiffTrackResultsPromise(tracksBefore, allTrackResults, forceSendAllWagers);
@@ -477,7 +481,6 @@
     });
   }
 
-
   function pushDiffWagers(wagersBefore, wagersAfter, forceSendAllWagers) {
     return new Promise(function(resolve) {
       const data = {};
@@ -599,13 +602,13 @@
     });
   }
 
-  function areTracksDifferent(a, b) {
+  function areTracksDifferent(b, a) {
     if ((!a && b) || (a && !b)) {
       return true;
     }
 
     if (a.length !== b.length) {
-      console.debug(`Differences were found in tracks lengths.`, {expected: a.length,  actual: b.length}); // eslint-disable-line
+      console.debug(`Differences were found in tracks lengths.`, {expected: a.length, a: a, actual: b.length, b: b}); // eslint-disable-line
 
       return true;
     }
@@ -638,59 +641,22 @@
     return !!isDiff;
   }
 
-  function removeFinishedTracks(tracks) {
-    const closedTrackCodes = pwnies
-      .closedTracks
-      .map(function(t) {
-        return t.BrisCode;
-      });
+  function removeStaticTracks(tracks) {
+    return tracks.filter(function(t) {
+      if (t.nextRace.Status.toLowerCase() === 'closed') {
+        console.debug(`Removing track ${t.BrisCode} from send list because it has closed.`); // eslint-disable-line
 
-    tracks = tracks.filter(function(t) { // Preemptively remove tracks
-      const remove = closedTrackCodes.indexOf(t.BrisCode) > -1;
-
-      if (remove) {
-        console.debug(`Removing track ${t.BrisCode} from send list because it is closed.`); // eslint-disable-line
+        return false;
       }
 
-      return !remove;
-    });
-
-    const closedTracks = tracks.filter(function(t) {
-      return t.nextRace.Status === 'Closed';
-    });
-
-    closedTracks.forEach(function(ct) {
-      const currCT = pwnies.closedTracks.find(function(t) {
-        return t.BrisCode === ct.BrisCode;
-      });
-
-      if (!currCT) {
-        pwnies.closedTracks.push({
-          BrisCode: ct.BrisCode
-        });
-      }
-    });
-
-    const notOpenTrackCodes = tracks
-      .filter(function(t) {
-        return t.nextRace.Status === 'Open' && t.nextRace.Mtp === 99;
-      })
-      .map(function(t) {
-        return t.BrisCode;
-      })
-      ;
-
-    tracks = tracks.filter(function(t) { // Preemptively remove tracks
-      const remove = notOpenTrackCodes.indexOf(t.BrisCode) > -1;
-
-      if (remove) {
+      if (t.nextRace.Status.toLowerCase() === 'open' && t.nextRace.Mtp === 99) {
         console.debug(`Removing track ${t.BrisCode} from send list because it is not open yet.`); // eslint-disable-line
+
+        return false;
       }
 
-      return !remove;
+      return true;
     });
-
-    return tracks;
   }
 
   function parseResultsToJson(html) {

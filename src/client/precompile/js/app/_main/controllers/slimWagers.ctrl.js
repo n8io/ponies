@@ -124,7 +124,7 @@
         t.nextRace = trackResult.track.nextRace;
 
         if ((t.nextRace.Status || '').toLowerCase() === 'closed') {
-          t.softHide = true;
+          // t.softHide = true;
         }
 
         t.races.forEach(function(cr) {
@@ -137,7 +137,7 @@
           }
 
           if (t.nextRace.RaceNum - 1 > cr.id) {
-            cr.softHide = true;
+            // cr.softHide = true;
           }
         });
 
@@ -148,7 +148,7 @@
 
           if (!foundCurrentRace) {
             if (t.nextRace.RaceNum - 1 > tr.id) {
-              tr.softHide = true;
+              // tr.softHide = true;
             }
 
             t.races.push(tr);
@@ -176,7 +176,7 @@
 
           if (foundRace) {
             if (t.nextRace.RaceNum - 1 > foundRace.id) {
-              foundRace.softHide = true;
+              // foundRace.softHide = true;
             }
 
             const foundWager = (foundRace.wagers || []).find(function(w) {
@@ -202,7 +202,7 @@
             const race = getNewRaceFromWager(fw);
 
             if (t.nextRace.RaceNum - 1 > race.id) {
-              race.softHide = true;
+              // race.softHide = true;
             }
 
             t.races.push(race);
@@ -377,10 +377,8 @@
         return false;
       }
 
-      const nextRaceId = track.nextRace.RaceNum;
-
       return track.races.find(function(r) {
-        return r.id >= nextRaceId - 1 && r.wagers && r.wagers.length;
+        return r.id >= track.nextRace.RaceNum - (track.nextRace.RaceStatus.toLowerCase() === 'off' ? 0 : 1) && r.wagers && r.wagers.length;
       });
     }
 
