@@ -9,7 +9,7 @@ function routeHandler(app, auth) {
     .get('/', getRoot)
     ;
 
-  app.use('/', auth.groupsRequired(['admin', 'user'], false), router);
+  app.use('/', auth.groupsRequired(['user'], false), router);
 }
 
 function getRoot(req, res) {
