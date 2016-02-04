@@ -2,7 +2,9 @@
   overflow auto
   zoom 1
   clear both
-
+*:focus
+  outline none
+  -webkit-focus-ring-color transparent
 body
   font-family 'Maven Pro','Helvetica Neue','Helvetica',Helvetica,Arial,sans-serif
   transition all 150ms ease-out
@@ -429,38 +431,44 @@ a.bookmarklet
     border-radius 3px
     border 1px solid transparent
     font-weight bold
+    text-shadow 1px 2px 3px rgba(0,0,0,.2)
     &.closed
       color #555
       background-color #F3F3F3
       border 1px solid #D2D2D2
     &.not-running
-      background-color darken(blue, 20%)
-      border 1px solid darken(blue, 30%)
-      color #fff
+      background-color #0905A7
+      border 1px solid darken(#0905A7, 10%)
+      color rgba(#fff, .8)
     &.not-soon
-      background-color blue
-      border 1px solid darken(blue, 10%)
+      background-color #2824CA
+      border 1px solid darken(#2824CA, 10%)
       color #fff
     &.kinda-soon
-      background-color green
-      border 1px solid darken(green, 10%)
+      background-color #0C99BD
+      border 1px solid darken(#0C99BD, 10%)
+      color #fff
+    &.fairly-soon
+      background-color #7FC147
+      border 1px solid darken(#7FC147, 10%)
       color #fff
     &.soon
       background-color yellow
-      border 1px solid darken(yellow, 10%)
+      border 1px solid darken(yellow, 30%)
+      text-shadow 1px 2px 3px rgba(0,0,0,.08)
       color #555
     &.very-soon
-      background-color orange
-      border 1px solid darken(orange, 10%)
+      background-color #FF6C00
+      border 1px solid darken(#FF6C00, 20%)
       color #fff
     &.now
       background-color red
       border 1px solid darken(red, 10%)
       color #fff
     &.off
-      background-color darken(red, 20%)
+      background-color darken(red, 25%)
       color #fff
-      border 1px solid darken(red, 30%)
+      border 1px solid darken(red, 35%)
 
 .track-outer
   margin-bottom 5px
@@ -506,6 +514,8 @@ td.race-cell
         background-color green
 
 .race-container
+  &:hover
+    background-color #f9f9f9
   .race-wrapper
     padding 5px 5px 5px 15px
     border-bottom 1px solid #ddd

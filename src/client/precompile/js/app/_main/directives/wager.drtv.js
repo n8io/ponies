@@ -38,7 +38,8 @@
         </span>
         <span class='wager-payout loser'
           data-ng-show='wager.payoutAmount === 0'
-          data-ng-if='wager.status == "PAID"'>
+          data-ng-if='wager.status == "PAID"'
+          data-ng-bind='wager.betAmount | currency:"$":2'>
         </span>
         <span class='wager-payout winner'
           data-ng-show='wager.payoutAmount > 0'

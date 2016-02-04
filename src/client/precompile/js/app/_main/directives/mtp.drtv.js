@@ -19,9 +19,10 @@
           <div class='mtp-wrapper'
             data-ng-show='mtp.RaceStatus.toLowerCase() == "open"'
             data-ng-class='{`
-            + `"not-soon": mtp.Mtp >= 8,`
-            + `"kinda-soon": mtp.Mtp >= 6 && mtp.Mtp <= 7,`
-            + `"soon": mtp.Mtp >= 3 && mtp.Mtp <= 5,`
+            + `"not-soon": mtp.Mtp >= 9,`
+            + `"kinda-soon": mtp.Mtp >= 7 && mtp.Mtp <= 8,`
+            + `"fairly-soon": mtp.Mtp >= 5 && mtp.Mtp <= 7,`
+            + `"soon": mtp.Mtp >= 3 && mtp.Mtp <= 4,`
             + `"very-soon": mtp.Mtp >= 1 && mtp.Mtp <= 2,`
             + `"now": mtp.Mtp == 0 && mtp.RaceStatus.toLowerCase() != "off"`
             + `}'

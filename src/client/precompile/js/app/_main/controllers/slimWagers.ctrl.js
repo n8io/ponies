@@ -6,7 +6,7 @@
     .controller('SlimWagersController', slimWagersController)
     ;
 
-  function slimWagersController($timeout, $location, $mdToast, toastr, ngNotify, EnumService, ConfigService, PubNub) {
+  function slimWagersController($timeout, $location, $mdBottomSheet, toastr, ngNotify, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
     const channels = EnumService.PubNub.Channels;
     let isLoading = true;
@@ -124,7 +124,7 @@
         t.nextRace = trackResult.track.nextRace;
 
         if ((t.nextRace.Status || '').toLowerCase() === 'closed') {
-          // t.softHide = true;
+          t.softHide = true;
         }
 
         t.races.forEach(function(cr) {
@@ -137,7 +137,7 @@
           }
 
           if (t.nextRace.RaceNum - 1 > cr.id) {
-            // cr.softHide = true;
+            cr.softHide = true;
           }
         });
 
@@ -148,7 +148,7 @@
 
           if (!foundCurrentRace) {
             if (t.nextRace.RaceNum - 1 > tr.id) {
-              // tr.softHide = true;
+              tr.softHide = true;
             }
 
             t.races.push(tr);
@@ -176,7 +176,7 @@
 
           if (foundRace) {
             if (t.nextRace.RaceNum - 1 > foundRace.id) {
-              // foundRace.softHide = true;
+              foundRace.softHide = true;
             }
 
             const foundWager = (foundRace.wagers || []).find(function(w) {
@@ -202,7 +202,7 @@
             const race = getNewRaceFromWager(fw);
 
             if (t.nextRace.RaceNum - 1 > race.id) {
-              // race.softHide = true;
+              race.softHide = true;
             }
 
             t.races.push(race);

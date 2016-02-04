@@ -12,7 +12,7 @@ append body-content
                 tr(data-ng-repeat='race in track.races | orderBy:["-id"]', data-ng-show='race.wagers')
                   td(data-ng-class='{final: !!race.wps}').race-cell
                     race(race='race')
-                    table(cellspacing='0', cellpadding='0', data-ng-if='!race.hide').width-100pct
+                    table(cellspacing='0', cellpadding='0', data-ng-if='!(race.hide === undefined ? race.softHide : race.hide)').width-100pct
                       tr(data-ng-repeat='wager in race.wagers | orderBy:["timestamp"]')
                         td
                           div(class='wager-container')
