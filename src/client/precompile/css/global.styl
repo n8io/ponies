@@ -475,7 +475,7 @@ a.bookmarklet
   border 1px solid #555
   border-radius 3px 3px 0 0
   &.finished
-    opacity .6
+    opacity .8
   &:hover
   &:active
   &:focus
@@ -485,12 +485,13 @@ a.bookmarklet
     background-color #fff
     border-bottom 1px solid #555
     transition border 200ms ease
+    border-radius 3px 3px 0 0
     .track-name
       padding 5px 10px
       color #fff
       background-color #555
-      max-width 200px
-      width 200px
+      max-width 250px
+      width 250px
       text-overflow ellipsis
       white-space nowrap
       overflow-x hidden
@@ -499,7 +500,7 @@ a.bookmarklet
         margin 4px 5px 0 0
 td.race-cell
   &.final
-    opacity .6
+    opacity .7
     &:hover
     &:active
     &:focus
@@ -530,6 +531,8 @@ td.race-cell
   text-shadow 0 1px 0 #ccc
   border-radius 3px
   color #555
+  &:hover
+    text-decoration underline
 .wager-payout
   font-size 90%
   &.winner
@@ -557,3 +560,46 @@ td.race-cell
       width 8px
       border-radius 5px
       margin 6px 0 0 5px
+.wps-detail-exotic-combo
+  margin-right -5px
+  padding 0
+.wps-detail-exotic-win-amount
+  text-align right
+.wps-details-wrapper
+  max-width 700px
+  margin 0 auto
+  h4
+    font-size 1.2em
+    margin-left 10px
+  table
+    border-radius 3px
+    border 1px solid #555
+    margin 10px
+    padding 10px
+    border-spacing 0px
+    border-collapse separate
+    font-size 90%
+    th.wps-header
+      &.horse
+        text-align center
+        width 50px
+      &.win
+      &.place
+      &.show
+        text-align right
+    th.exotic-header
+      &.payout
+        text-align right
+      &.type
+      &.base
+      &.combo
+        text-align left
+    tr:nth-child(even)
+      background-color #ddd
+
+  .wps-detail-horse
+    text-align center
+  .wps-detail-win
+  .wps-detail-place
+  .wps-detail-show
+    text-align right

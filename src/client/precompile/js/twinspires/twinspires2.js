@@ -10,6 +10,7 @@
   const MESSAGE_TYPE_TRACK_RESULT = 'trackResult';
   const MESSAGE_TYPE_WAGERS = 'wagers';
   const threeSeconds = 1000 * 3;
+  const isMobile = window.location.href.toLowerCase().indexOf('//m.twinspires.com') > -1; // eslint-disable-line
   // const sevenSeconds = 1000 * 7;
   // const thirtySeconds = 1000 * 30;
   // const oneMinute = 1000 * 30;
@@ -90,10 +91,11 @@
       const css = `
         <style id='css-sync'>
           .noshow {display:none;height:0;width:0;}
-          #syncButton {position: absolute;bottom: 22px;right: 25px;z-index: 99999;height: 33px;width: 105px;border-radius:3px;border:1px solid transparent;background-color: #ccc}
+          #syncButton {position:fixed;bottom:22px;right:25px;z-index:99999;height:33px;width:105px;border-radius:3px;border:1px solid transparent;background-color:#f9f9f9}
           #syncButton:disabled {background-color: #ccc}
           #syncButton div {height:14px;width:14px;border-radius:14px;background-color:#bbb;margin-right:10px;float:right;}
           #syncButton div.on {background-color:#4BBA4B;}
+          ${isMobile ? `#syncButton {top:111px;right: 18px;}` : ``}
         </style>
       `;
 
@@ -155,35 +157,51 @@
   function initializeControlData() {
     const uc = Cdi.AppConfig.WS; // eslint-disable-line
     const wc = pwnies.wagerCreds;
+    const baseUrl = `https://${isMobile ? `m` : `www`}.twinspires.com`;
 
-    pwnies.wagerCreds.wagersUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Rtb/GetData?' // eslint-disable-line
-        + '&username=' + wc.USERNAME
-        + '&password=' + wc.PASSWORD
-        + '&ip=' + wc.CDI_CLIENT_IP
-        + '&affid=' + wc.CDI_SAID
-        + '&affiliateId=' + wc.CDI_SAID
-        + '&account=' + pwnies.user.accountNum
-        + '&authKey=' + pwnies.user.authKey
-        + '&output=json'
-        + '&limit=200'
+    pwnies.wagerCreds.wagersUrl = `${baseUrl}/php/fw/php_BRIS_BatchAPI/2.3/Rtb/GetData?` // eslint-disable-line
+        + `&username=${wc.USERNAME}`
+        + `&password=${wc.PASSWORD}`
+        + `&ip=${wc.CDI_CLIENT_IP}`
+        + `&affid=${wc.CDI_SAID}`
+        + `&affiliateId=${wc.CDI_SAID}`
+        + `&account=${pwnies.user.accountNum}`
+        + `&authKey=${pwnies.user.authKey}`
+        + `&output=json`
+        + `&limit=200`
         ;
 
-    pwnies.wagerCreds.poolTypesUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Tote/PoolTypes?' // eslint-disable-line
-      + '&username=' + wc.USERNAME
-      + '&password=' + wc.PASSWORD
-      + '&ip=' + wc.CDI_CLIENT_IP
-      + '&affid=' + wc.CDI_SAID
-      + '&affiliateId=' + wc.CDI_SAID
-      + '&output=json'
+    pwnies.wagerCreds.poolTypesUrl = `${baseUrl}/php/fw/php_BRIS_BatchAPI/2.3/Tote/PoolTypes?` // eslint-disable-line
+      + `&username=${wc.USERNAME}`
+      + `&password=${wc.PASSWORD}`
+      + `&ip=${wc.CDI_CLIENT_IP}`
+      + `&affid=${wc.CDI_SAID}`
+      + `&affiliateId=${wc.CDI_SAID}`
+      + `&output=json`
       ;
 
-    pwnies.wagerCreds.trackListUrl = '/php/fw/php_BRIS_BatchAPI/2.3/Cdi/TrackList?multisource=1&vidType=FLV' // eslint-disable-line
-      + '&username=' + uc.USERNAME
-      + '&password=' + uc.PASSWORD
-      + '&ip=' + uc.CDI_CLIENT_IP
-      + '&affid=' + uc.CDI_SAID
-      + '&output=json'
+    pwnies.wagerCreds.trackListUrl = `${baseUrl}/php/fw/php_BRIS_BatchAPI/2.3/Cdi/TrackList?multisource=1&vidType=FLV` // eslint-disable-line
+      + `&username=${uc.USERNAME}`
+      + `&password=${uc.PASSWORD}`
+      + `&ip=${uc.CDI_CLIENT_IP}`
+      + `&affid=${uc.CDI_SAID}`
+      + `&output=json`
       ;
+
+    if (!isMobile) {
+      pwnies.wagerCreds.resultUrl = `${baseUrl}/secure-bin/results_tracks.cgi?`
+        + `&race=all`
+        ;
+    }
+    else {
+      pwnies.wagerCreds.resultUrl = `${baseUrl}/php/fw/php_BRIS_BatchAPI/2.3/Tote/Results?` // eslint-disable-line
+        + `&username=${uc.USERNAME}`
+        + `&password=${uc.PASSWORD}`
+        + `&ip=${uc.CDI_CLIENT_IP}`
+        + `&affid=${uc.CDI_SAID}`
+        + `&output=json`
+        ;
+    }
 
     return pwnies;
   }
@@ -325,11 +343,11 @@
         return getTracksMtpPromise(uniqueTracks);
       })
       .then(function(tracks) {
-        if (forceSendAllWagers) {
+        if (!forceSendAllWagers) {
           tracks = removeStaticTracks(tracks);
         }
 
-        return getAllTrackResultsPromise(tracks);
+        return getAllTrackResultsPromise(tracks, tWagers);
       })
       .then(function(allTrackResults) {
         return pushDiffTrackResultsPromise(tracksBefore, allTrackResults, forceSendAllWagers);
@@ -393,18 +411,27 @@
     });
   }
 
-  function getAllTrackResultsPromise(tracks) {
-    const promises = tracks.map(getTrackResultsPromise);
+  function getAllTrackResultsPromise(tracks, wagers) {
+    // const slimTracks = slimDownTracksToOnlyThoseWithWagers(tracks.concat(), wagers);
+    let promises;
+
+    if (isMobile && false) {
+      // TODO: Work out mobile race results
+      // promises = tracks.map(getTrackResultsMobilePromise);
+    }
+    else {
+      promises = tracks.map(getTrackResultsDesktopPromise);
+    }
 
     return Promise.all(promises);
   }
 
-  function getTrackResultsPromise(track) {
+  function getTrackResultsDesktopPromise(track) {
     const lookups = {
       'thoroughbred': 1,
       'harness': 2
     };
-    const url = `/secure-bin/results_tracks.cgi?track=${track.BrisCode}&race=all&type=${lookups[track.TrackType.toLowerCase()]}`;
+    const url = `${pwnies.wagerCreds.resultUrl}&track=${track.BrisCode}&type=${lookups[track.TrackType.toLowerCase()]}`;
 
     return new Promise(function(resolve) {
       console.debug(`Fetching ${track.BrisCode} track results...`, url); // eslint-disable-line
@@ -600,6 +627,31 @@
 
       return newWager;
     });
+  }
+
+  function slimDownTracksToOnlyThoseWithWagers(fullTracks, wagers) {
+    const slimTracks = fullTracks
+      .filter(function(t) {
+        return !!t.races.find(function(r) {
+          return !!wagers.find(function(w) {
+            return t.BrisCode === w.BrisCode && r.id === w.race.id;
+          });
+        });
+      })
+      .map(function(t) {
+        t.races = t.races.filter(function(r) {
+          return !!wagers.find(function(w) {
+            return w.BrisCode === t.BrisCode && w.race.id === r.id;
+          });
+        });
+
+        return t;
+      })
+      ;
+
+    debugger;
+
+    return slimTracks;
   }
 
   function areTracksDifferent(b, a) {

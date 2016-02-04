@@ -6,7 +6,7 @@
     .controller('SlimWagersController', slimWagersController)
     ;
 
-  function slimWagersController($timeout, $location, $mdBottomSheet, toastr, ngNotify, EnumService, ConfigService, PubNub) {
+  function slimWagersController($timeout, $location, toastr, ngNotify, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
     const channels = EnumService.PubNub.Channels;
     let isLoading = true;
