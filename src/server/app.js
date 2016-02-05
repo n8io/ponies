@@ -27,11 +27,9 @@ function startApp() {
       process.version
     );
 
-    logger.info(`
-STORMPATH_CLIENT_APIKEY_ID=${process.env.STORMPATH_CLIENT_APIKEY_ID}
-STORMPATH_CLIENT_APIKEY_SECRET=${process.env.STORMPATH_CLIENT_APIKEY_SECRET}
-STORMPATH_APPLICATION_HREF=${process.env.STORMPATH_APPLICATION_HREF}
-    `);
+    logger.info(`STORMPATH_CLIENT_APIKEY_ID=${process.env.STORMPATH_CLIENT_APIKEY_ID}`);
+    logger.info(`STORMPATH_CLIENT_APIKEY_SECRET=${process.env.STORMPATH_CLIENT_APIKEY_SECRET}`);
+    logger.info(`STORMPATH_APPLICATION_HREF=${process.env.STORMPATH_APPLICATION_HREF}`);
   });
 
   module.exports = server;

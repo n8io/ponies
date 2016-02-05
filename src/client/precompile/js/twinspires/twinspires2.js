@@ -551,12 +551,16 @@
         console.debug(`Sending diff wagers...`, diffWagers); // eslint-disable-line
       }
 
-      data[MESSAGE_TYPE_WAGERS] = diffWagers;
+      const chunks = _.chunk(diffWagers, 5); // Break calls into manageable sizes
 
-      pwnies.PubNub.publish({
-        channel: WAGERS_CHANNEL,
-        message: data,
-        callback: resolve
+      chunks.forEach(function(chunk) {
+        data[MESSAGE_TYPE_WAGERS] = chunk;
+
+        pwnies.PubNub.publish({
+          channel: WAGERS_CHANNEL,
+          message: data,
+          callback: resolve
+        });
       });
     });
   }
