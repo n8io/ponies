@@ -1,0 +1,102 @@
+[
+  {
+    "background": "#000",
+    "color": "#FFF"
+  },
+  {
+    "background": "#F00",
+    "color": "#FFF"
+  },
+  {
+    "background": "#FFF",
+    "color": "#000"
+  },
+  {
+    "background": "#00F",
+    "color": "#FFF"
+  },
+  {
+    "background": "#FF0",
+    "color": "#000"
+  },
+  {
+    "background": "#008000",
+    "color": "#FFF"
+  },
+  {
+    "background": "#000",
+    "color": "#FF0"
+  },
+  {
+    "background": "#F60",
+    "color": "#000"
+  },
+  {
+    "background": "#F9C",
+    "color": "#000"
+  },
+  {
+    "background": "#0FF",
+    "color": "#000"
+  },
+  {
+    "background": "#800080",
+    "color": "#FFF"
+  },
+  {
+    "background": "#969696",
+    "color": "#A00"
+  },
+  {
+    "background": "#9C0",
+    "color": "#000"
+  },
+  {
+    "background": "#281B04",
+    "color": "#FFF"
+  },
+  {
+    "background": "#5E0B0B",
+    "color": "#FF0"
+  },
+  {
+    "background": "#DDD9C3",
+    "color": "#000"
+  },
+  {
+    "background": "#9CF",
+    "color": "#F60"
+  },
+  {
+    "background": "#0C1D32",
+    "color": "#fff"
+  },
+  {
+    "background": "#022307",
+    "color": "#FF0"
+  },
+  {
+    "background": "#039",
+    "color": "#A00"
+  },
+  {
+    "background": "#F39",
+    "color": "#FF0"
+  },
+  {
+    "background": "#B5B2D7",
+    "color": "#0C1D32"
+  },
+  {
+    "background": "#003768",
+    "color": "#fff"
+  },
+  {
+    "background": "#BDD7CE",
+    "color": "#030"
+  },
+  {
+    "background": "#31450A",
+    "color": "#FFF"
+  }
+]

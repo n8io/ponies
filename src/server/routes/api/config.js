@@ -1,5 +1,7 @@
 const express = require('express');
+const cwd = require('cwd');
 const _ = require('lodash');
+const colorController = require(cwd('src/server/controllers/colors'));
 
 module.exports = routeHandler;
 
@@ -32,6 +34,13 @@ function routeHandler(app, auth) {
       fullName: cfg.user.fullName
     };
 
-    return res.json(cfg);
+    colorController
+      .get()
+      .then(function(colors) {
+        cfg.colors = colors;
+
+        return res.json(cfg);
+      })
+      ;
   }
 }

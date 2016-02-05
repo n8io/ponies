@@ -8,12 +8,27 @@
 
   /* @ngInject */
   function ConfigService($http) {
+    let config;
+
     return {
       getConfig: getConfig
     };
 
     function getConfig() {
-      return $http.get('/api/config/ng');
+      return new Promise(function(resolve) {
+        if (config) {
+          return resolve(config);
+        }
+
+        $http
+          .get('/api/config/ng')
+          .then(function(results) {
+            config = results.data;
+
+            return resolve(config);
+          })
+          ;
+      });
     }
   }
 })();

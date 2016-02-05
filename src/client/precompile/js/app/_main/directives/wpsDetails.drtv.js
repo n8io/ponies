@@ -23,6 +23,8 @@
               <thead>
                 <tr>
                   <th class='wps-header horse'>Horse</th>
+                  <th class='wps-header odds cursor-pointer' data-ng-click='decimal = !decimal'>Odds</th>
+                  <th class='wps-header ml cursor-pointer' data-ng-click='decimal = !decimal'>ML</th>
                   <th class='wps-header win'>Win</th>
                   <th class='wps-header place'>Place</th>
                   <th class='wps-header show'>Show</th>
@@ -31,7 +33,13 @@
               <tbody>
                 <tr data-ng-repeat='place in race.wps'>
                   <td>
-                    <div class='wps-detail-horse' data-ng-bind='place.horse'></div>
+                    <horse-number horse='place.horse' track-type='track.nextRace.TrackType' />
+                  </td>
+                  <td>
+                    <horse-odds horse='getHorseByProgramNumber(place.horse)' fractional='!decimal' />
+                  </td>
+                  <td>
+                    <horse-morning-line horse='getHorseByProgramNumber(place.horse)' fractional='!decimal' />
                   </td>
                   <td>
                     <div class='wps-detail-win' data-ng-bind='place.winAmount | currency:"$":2'></div>
@@ -48,7 +56,17 @@
             <exotics-table exotics='race.exotics'></exotics-table>
           </div>
         </div>
-      `
+      `,
+      controller: controllerFn
     };
+
+    /* @ngInject */
+    function controllerFn($scope) {
+      $scope.getHorseByProgramNumber = function(programNumber) {
+        return $scope.race.horses.find(function(h) {
+          return h.ProgramNumber === programNumber;
+        });
+      };
+    }
   }
 })();

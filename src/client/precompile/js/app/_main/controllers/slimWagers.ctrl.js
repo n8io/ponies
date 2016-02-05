@@ -11,7 +11,7 @@
     const channels = EnumService.PubNub.Channels;
     let isLoading = true;
     let pNub = null;
-    let userInfo = null;
+    let cfg = null;
 
     init();
 
@@ -23,13 +23,13 @@
 
       ConfigService
         .getConfig()
-        .then(function(res) {
-          vm.userInfo = userInfo = res.data.user;
+        .then(function(configData) {
+          cfg = configData;
 
           return PubNub.init({
-            'subscribe_key': res.data.pubNub.subscribeKey,
+            'subscribe_key': cfg.pubNub.subscribeKey,
             ssl: $location.protocol().indexOf('s') > -1,
-            uuid: userInfo.email
+            uuid: cfg.user.email
           });
         })
         .then(function(pnInstance) { // Subscribe to wagers channel
@@ -47,7 +47,7 @@
               heartbeat: 60,
               message: onMessageReceived,
               presence: onPresenceEventReceived,
-              state: mapToUserInfo(userInfo),
+              state: mapToUserInfo(cfg.user),
               connect: function() {
                 console.debug(`Now subscribed to ${channels.WAGERS} channel.`); // eslint-disable-line
 
@@ -79,7 +79,7 @@
         .then(function(data) {
           onHereNowReceived(data);
         })
-        .finally(function() {
+        .then(function() {
           console.info(`Finished PubNub initialization.`); // eslint-disable-line
         })
         ;
@@ -88,11 +88,11 @@
     function onMessageReceived(message) { // eslint-disable-line
       // console.debug(`Message received...`, message); // eslint-disable-line
 
-      if (message.trackResult) {
+      if (message.trackResults) {
         return $timeout(function() {
-          console.debug(`Track result received ${message.trackResult.track.BrisCode}...`, message.trackResult); // eslint-disable-line
+          console.debug(`Track results received...`, message.trackResults); // eslint-disable-line
 
-          processTrackResult(message.trackResult);
+          processTrackResults(message.trackResults);
         });
       }
       else if (message.wagers) {
@@ -102,6 +102,10 @@
           processWagers(message.wagers);
         });
       }
+    }
+
+    function processTrackResults(trackResults) {
+      trackResults.forEach(processTrackResult);
     }
 
     function processTrackResult(trackResult) {
@@ -234,7 +238,7 @@
     function onPresenceJoin(ev) {
       console.debug('Presence join event received...', ev); // eslint-disable-line
 
-      if (ev.uuid === userInfo.email) {
+      if (ev.uuid === cfg.user.email) {
         // Ignore, it's just me
         console.debug(`Ignoring because it is just me joining the channel.`); // eslint-disable-line
 
@@ -325,7 +329,7 @@
         return;
       }
 
-      if (user.email === userInfo.email) {
+      if (user.email === cfg.user.email) {
         msg = `You are ${user.isSyncing ? '' : 'not'} syncing`;
         vm.me.isSyncing = user.isSyncing;
       }
@@ -346,7 +350,7 @@
       let state = {};
 
       if (!user) {
-        user = userInfo;
+        user = cfg.user;
       }
 
       state = user.data || user.state || {};
@@ -364,8 +368,8 @@
         data.fullName = `${data.firstName} ${data.lastName}`;
       }
 
-      if (data.email === userInfo.email) {
-        Object.assign(data, userInfo, data);
+      if (data.email === cfg.user.email) {
+        Object.assign(data, cfg.user, data);
       }
 
       return data;
