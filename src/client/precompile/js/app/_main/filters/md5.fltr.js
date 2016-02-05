@@ -7,9 +7,9 @@
     ;
 
   /* @ngInject */
-  function md5(CryptoService) {
+  function md5(CryptoJs) {
     return function(val) {
-      return angular.isString(val) ? CryptoService.MD5(val).toString() : val;
+      return angular.isString(val) ? CryptoJs.MD5(val).toString() : val;
     };
   }
 })();

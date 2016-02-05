@@ -3,11 +3,11 @@
 
   angular
     .module('app.services')
-    .factory('CryptoService', CryptoService)
+    .factory('CryptoJs', cryptoService)
     ;
 
   /* @ngInject */
-  function CryptoService() {
+  function cryptoService() {
     return CryptoJS; // eslint-disable-line
   }
 })();

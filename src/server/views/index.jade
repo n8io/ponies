@@ -1,68 +1,24 @@
 extends _layouts/master/_
 
 append body-content
-  #content(layout='row', flex, layout-margin='20', data-ng-controller='MasterController as mc').bump-bottom
+  #content(layout='row', flex, layout-margin='20', data-ng-controller='SlimWagersController as swc').bump-bottom
     md-content.width-100pct
-      table(cellspacing='0', cellpadding='0', data-ng-show='!mc.tracks || mc.tracks.length == 0').width-100pct
-        tbody
-          tr
-            td.text-center
-              span
-                span Waiting on bets to sync...
-                a(href='/bookmark', target='_bookmark') learn how turn it on now
-      .width-100pct(data-ng-show='mc.tracks.length > 0')
-        table(cellspacing='0', cellpadding='0').width-100pct
-          tbody
-            tr(data-ng-repeat='track in mc.tracks | orderBy:mc.trackSortOrder')
-              td
-                table(cellspacing='0', cellpadding='0').width-100pct.track
-                  tbody
-                    tr(data-ng-click='track.hide = !track.hide').cursor-pointer
-                      td.track
-                        .float-left.mgn-right-7 {{track.DisplayName}}
-                        .float-left(data-ng-show='track.mtp.id == 99').finished FINISHED
-                        .float-left(data-ng-show='track.mtp.id == 1 && track.mtp.mtp == 99').not-started NOT STARTED
-                        .float-right
-                          span(data-ng-show='track.hide')
-                            i.fa.fa-angle-double-down
-                          span(data-ng-hide='track.hide')
-                            i.fa.fa-angle-double-up
-                    tr(data-ng-hide='$last')
-                      td(style='height: 1px; background: #fff;')
-                    tr(data-ng-repeat='race in track.races | orderBy:"id":true', data-ng-hide='track.hide')
-                      td
-                        table(cellspacing='0', cellpadding='0').width-100pct
-                          tbody
-                            tr(data-ng-class='{complete: !!race.result}', data-ng-click='race.hide = !race.hide').cursor-pointer
-                              td.race
-                                .float-left Race {{race.id}}
-                                .float-left(data-ng-show='race.result').race-result.mgn-right-7 {{race.result}}
-                                .float-left(data-ng-show='!race.result && race.id == track.mtp.id').race-mtp.mgn-right-7
-                                  .minutes(data-ng-show='track.mtp.mtp == -1', data-ng-class='track.mtp.level')
-                                    i.fa.fa-lock
-                                    span &nbsp;OFF
-                                  .minutes(data-ng-show='track.mtp.mtp >  -1 && track.mtp.mtp < 99', data-ng-class='track.mtp.level') MTP {{track.mtp.mtp}}
-                                  .minutes(data-ng-show='track.mtp.mtp == 99', data-ng-class='track.mtp.level') NOT RUNNING
-                                .float-left(data-ng-show='race.hide', data-ng-repeat='ww in mc.winnningWagers(race)').winning-wager-icon
-                                .float-right
-                                  span(data-ng-show='race.wagers.length > 0')
-                                    span.text-muted {{race.wagers.length}} bet(s)&nbsp;
-                                  span(data-ng-show='race.hide')
-                                    i.fa.fa-angle-double-down
-                                  span(data-ng-hide='race.hide')
-                                    i.fa.fa-angle-double-up
-                            tr(data-ng-repeat='wager in race.wagers | orderBy:"timestamp"', data-ng-hide='race.hide')
-                              td.wager(data-ng-class='{ complete: race.result, pending: wager.status == "PENDING", placed: wager.status == "PLACED", canceled: wager.status == "CANCELED", win: wager.payoutAmount > 0 && race.result && wager.status == "PAID", lost: wager.payoutAmount == 0 && race.result && wager.status == "PAID" }')
-                                gravatar(email='wager.user.email', size='20', round, title='{{wager.user.firstName + " " + wager.user.lastName}}').valign-mid
-                                span.lh-20 &nbsp; {{wager.type.Name}} - {{wager.selections}}&nbsp;
-                                span.amount(data-ng-show='wager.payoutAmount == 0') {{wager.amount | currency:'$':2}}
-                                span(data-ng-hide='wager.payoutAmount == 0').winner {{wager.amount | currency:'$':2}} / {{wager.payoutAmount | currency:'$':2}}
-                                .float-right
-                                  wager-timestamp(wager='wager')
-      if (locals.debug)
-        pre.code {{mc.tracks | json}}
-    .presence-container(data-ng-show='mc.presences.length > 0')
-      .presence-wrapper
-        .presence(data-ng-repeat='presence in mc.presences', data-ng-class='{syncing: presence.isSyncing}')
-          gravatar(email='presence.email', size='50', round, title='{{presence.givenName + " " + presence.surname + " is " + (presence.isSyncing ? "" : "not ") + "syncing"}}', default='http://google.com/broken-image.jpg', letter='presence.givenName')
-    .i-m-syncing(data-ng-hide='mc.iAmSyncing == -1', data-ng-class='{no: !mc.iAmSyncing, yes: mc.iAmSyncing}')
+      table(cellspacing='0', cellpadding='0').width-100pct
+        tr(data-ng-repeat='track in swc.tracks | orderBy:["-nextRace.Status", "nextRace.Mtp", "nextRace.RaceStatus", "-nextRace.postTimestamp", "DisplayName"]')
+          td
+            .track-outer(data-ng-class='{finished: track.nextRace.Status.toLowerCase() == "closed"}')
+              track(track='track')
+              table(cellspacing='0', cellpadding='0', data-ng-hide='track.hide === undefined ? track.softHide : track.hide').width-100pct
+                tr(data-ng-repeat='race in track.races | orderBy:["-id"]', data-ng-show='race.wagers')
+                  td(data-ng-class='{final: !!race.wps}').race-cell
+                    race(race='race', track='track')
+                    table(cellspacing='0', cellpadding='0', data-ng-if='!(race.hide === undefined ? race.softHide : race.hide)').width-100pct
+                      tr(data-ng-repeat='wager in race.wagers | orderBy:["timestamp"]')
+                        td
+                          div(class='wager-container')
+                            wager(wager='wager')
+              .clearfix
+      - if (locals.showDebug)
+        pre.code {{ _.omit(swc.tracks, ['races']) | json}}
+    sync-status(status='swc.me.isSyncing')
+    presence(presences='swc.presences', my-presence='swc.userInfo')

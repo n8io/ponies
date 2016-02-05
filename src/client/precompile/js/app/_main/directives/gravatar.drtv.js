@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function gravatar(CryptoService, UtilityService, d3) {
+  function gravatar(CryptoJs, UtilityService, d3) {
     return {
       restrict: 'E',
       scope: {
@@ -28,7 +28,7 @@
       $scope.forceDefault = angular.isDefined(attrs.force);
       $scope.rating = attrs.rating || 'G';
       $scope.round = angular.isDefined(attrs.round);
-      $scope.emailHash = CryptoService.MD5($scope.email).toString();
+      $scope.emailHash = CryptoJs.MD5($scope.email).toString();
 
       element.bind('error', function() {
         const svg = angular.element(buildInitialLetterSvg($scope.letter, $scope.size, $scope.round, element));

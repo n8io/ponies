@@ -7,9 +7,9 @@
     ;
 
   /* @ngInject */
-  function ago(MomentService) {
+  function ago(moment) {
     return function(val) {
-      return angular.isNumber(val) ? MomentService(val).fromNow() : '';
+      return angular.isNumber(val) ? moment(val).fromNow() : '';
     };
   }
 })();

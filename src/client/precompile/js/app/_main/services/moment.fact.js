@@ -3,11 +3,11 @@
 
   angular
     .module('app.services')
-    .factory('MomentService', MomentService)
+    .factory('moment', momentService)
     ;
 
   /* @ngInject */
-  function MomentService() {
+  function momentService() {
     return moment; // eslint-disable-line
   }
 })();

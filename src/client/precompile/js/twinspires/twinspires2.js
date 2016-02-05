@@ -91,9 +91,9 @@
       const css = `
         <style id='css-sync'>
           .noshow {display:none;height:0;width:0;}
-          #syncButton {position:fixed;bottom:22px;right:25px;z-index:99999;height:33px;width:105px;border-radius:3px;border:1px solid transparent;background-color:#f9f9f9}
-          #syncButton:disabled {background-color: #ccc}
-          #syncButton div {height:14px;width:14px;border-radius:14px;background-color:#bbb;margin-right:10px;float:right;}
+          #syncButton {position:fixed;bottom:22px;right:25px;z-index:99999;height:33px;width:105px;border-radius:3px;border:1px solid rgba(255,255,255, .4);background-color:#3986CA;color:#fff}
+          #syncButton:disabled {background-color: #ccc, color: #777}
+          #syncButton div {height:14px;width:14px;border-radius:14px;background-color:#ddd;margin-right:10px;float:right;}
           #syncButton div.on {background-color:#4BBA4B;}
           ${isMobile ? `#syncButton {top:111px;right: 18px;}` : ``}
         </style>

@@ -6,7 +6,7 @@
     .controller('SlimWagersController', slimWagersController)
     ;
 
-  function slimWagersController($timeout, $location, toastr, ngNotify, EnumService, ConfigService, PubNub) {
+  function slimWagersController($timeout, $location, toastr, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
     const channels = EnumService.PubNub.Channels;
     let isLoading = true;
@@ -19,7 +19,6 @@
       vm.tracks = [];
       vm.slimTracks = [];
       vm.presences = [];
-      vm.hasOldRaces = hasOldRaces;
       vm.me = {isSyncing: undefined};
 
       ConfigService
@@ -136,7 +135,7 @@
             Object.assign(cr, foundResultRace);
           }
 
-          if (t.nextRace.RaceNum - 1 > cr.id) {
+          if (t.nextRace.RaceNum - 1 > cr.id || (t.nextRace && t.nextRace.Status.toLowerCase() === 'closed')) {
             cr.softHide = true;
           }
         });
@@ -147,7 +146,7 @@
           });
 
           if (!foundCurrentRace) {
-            if (t.nextRace.RaceNum - 1 > tr.id) {
+            if (t.nextRace.RaceNum - 1 > tr.id || (t.nextRace && t.nextRace.Status.toLowerCase() === 'closed')) {
               tr.softHide = true;
             }
 
@@ -175,7 +174,7 @@
           });
 
           if (foundRace) {
-            if (t.nextRace.RaceNum - 1 > foundRace.id) {
+            if (t.nextRace.RaceNum - 1 > foundRace.id || t.nextRace.Status.toLowerCase() === 'closed') {
               foundRace.softHide = true;
             }
 
@@ -201,7 +200,7 @@
 
             const race = getNewRaceFromWager(fw);
 
-            if (t.nextRace.RaceNum - 1 > race.id) {
+            if (t.nextRace.RaceNum - 1 > race.id || t.nextRace.Status.toLowerCase() === 'closed') {
               race.softHide = true;
             }
 
@@ -373,22 +372,12 @@
     }
 
     function hasActiveWagers(track) {
-      if (!track || !track.races || !track.races.length) {
+      if (!track || !track.races || !track.races.length || !track.nextRace || track.nextRace.Status.toLowerCase() === 'closed') {
         return false;
       }
 
       return track.races.find(function(r) {
         return r.id >= track.nextRace.RaceNum - (track.nextRace.RaceStatus.toLowerCase() === 'off' ? 0 : 1) && r.wagers && r.wagers.length;
-      });
-    }
-
-    function hasOldRaces(track) {
-      if (!track || !track.races || !track.nextRace) {
-        return false;
-      }
-
-      return !!track.races.find(function(r) {
-        return r.id < track.nextRace.RaceNum - 1;
       });
     }
   }
