@@ -364,8 +364,8 @@
         return getAllTracksOddsInfo(allTrackResults);
       })
       .then(function(allTrackResults) {
-        const a = slimDownTracksToOnlyThoseWithWagers(allTrackResults.concat(), tWagers);
-        const b = slimDownTracksToOnlyThoseWithWagers(tracksBefore.concat(), tWagers);
+        const a = allTrackResults.concat(); // Already slimmed down above
+        const b = tracksBefore.concat();
 
         return pushDiffTrackResultsPromise(b, a, forceSendAllWagers);
       })
@@ -410,7 +410,7 @@
       const uniqTracks = [];
       const tracks = wagers.map(function(w) {
         return pwnies.tracks.find(function(t) {
-          return t.EventCode === w.eventCode;
+          return t.BrisCode === w.track.BrisCode;
         });
       });
 
@@ -746,16 +746,20 @@
   function slimDownTracksToOnlyThoseWithWagers(fullTracks, wagers) {
     const slimTracks = fullTracks
       .filter(function(t) {
-        return !!t.races.find(function(r) {
-          return !!wagers.find(function(w) {
-            return t.BrisCode === w.BrisCode && r.id === w.race.id;
-          });
+        const foundWagers = wagers.filter(function(w) {
+          return t.track.BrisCode === w.track.BrisCode;
         });
+
+        return foundWagers.length;
       })
       .map(function(t) {
+        const foundWagers = wagers.filter(function(w) {
+          return t.track.BrisCode === w.track.BrisCode;
+        });
+
         t.races = t.races.filter(function(r) {
-          return !!wagers.find(function(w) {
-            return w.BrisCode === t.BrisCode && w.race.id === r.id;
+          return !!foundWagers.find(function(w) {
+            return w.track.BrisCode === t.track.BrisCode && w.race.id === r.id;
           });
         });
 

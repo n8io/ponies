@@ -18,7 +18,8 @@
       template: `
         <div class='wps-details-container' data-ng-show='!!race.wps'>
           <div class='wps-details-wrapper'>
-            <h4 data-ng-bind='track.DisplayName + ": Race " + race.id + " Results"'></h4>
+            <h3 data-ng-bind='track.DisplayName + ": Race " + race.id + " Results"'></h3>
+            <h5 data-ng-if='race.metadata'>{{track.nextRace.TrackType}} over {{race.metadata.Distance}} on {{race.metadata.SurfaceText}}</h5>
             <table class='width-100pct'>
               <thead>
                 <tr>

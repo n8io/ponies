@@ -17,7 +17,7 @@
       template: `
         <div class='mtp-container'>
           <div class='mtp-wrapper'
-            data-ng-show='mtp.RaceStatus.toLowerCase() == "open"'
+            data-ng-if='mtp.RaceStatus.toLowerCase() == "open"'
             data-ng-class='{`
             + `"not-soon": mtp.Mtp >= 9,`
             + `"kinda-soon": mtp.Mtp >= 7 && mtp.Mtp <= 8,`
@@ -30,13 +30,13 @@
             >
           </div>
           <div class='mtp-wrapper off'
-            data-ng-show='mtp.RaceStatus.toLowerCase() == "off"'
+            data-ng-if='mtp.RaceStatus.toLowerCase() == "off"'
             >
             <span data-ng-bind='"R" + mtp.RaceNum  + " OFF"'></span>
             <i class='fa fa-lock'></i>
           </div>
           <div class='mtp-wrapper closed'
-            data-ng-show='mtp.Status.toLowerCase() == "closed"'
+            data-ng-if='mtp.Status.toLowerCase() == "closed"'
             data-ng-bind='"FINISHED"'
             >
           </div>
