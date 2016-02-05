@@ -28,7 +28,7 @@
     "gulp": "gulp",
     "lint": "gulp lint",
     "postinstall": "bower install && gulp",
-    "start": "DEBUG=* node $npm_package_main",
+    "start": "node $npm_package_main",
     "test": "gulp test"
   },
   "config": {
