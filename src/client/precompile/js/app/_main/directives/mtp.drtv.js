@@ -17,28 +17,19 @@
       template: `
         <div class='mtp-container'>
           <div class='mtp-wrapper'
-            data-ng-if='mtp.RaceStatus.toLowerCase() == "open"'
             data-ng-class='{`
-            + `"not-soon": mtp.Mtp >= 9,`
-            + `"kinda-soon": mtp.Mtp >= 7 && mtp.Mtp <= 8,`
-            + `"fairly-soon": mtp.Mtp >= 5 && mtp.Mtp <= 7,`
-            + `"soon": mtp.Mtp >= 3 && mtp.Mtp <= 4,`
-            + `"very-soon": mtp.Mtp >= 1 && mtp.Mtp <= 2,`
-            + `"now": mtp.Mtp == 0 && mtp.RaceStatus.toLowerCase() != "off"`
+            + `"closed": mtp.Status.toLowerCase() == "closed",`
+            + `"not-soon": mtp.Status.toLowerCase() == "open" && mtp.Mtp >= 9,`
+            + `"kinda-soon": mtp.Status.toLowerCase() == "open" && mtp.Mtp >= 7 && mtp.Mtp <= 8,`
+            + `"fairly-soon": mtp.Status.toLowerCase() == "open" && mtp.Mtp >= 5 && mtp.Mtp <= 7,`
+            + `"soon": mtp.Status.toLowerCase() == "open" && mtp.Mtp >= 3 && mtp.Mtp <= 4,`
+            + `"very-soon": mtp.Status.toLowerCase() == "open" && mtp.Mtp >= 1 && mtp.Mtp <= 2,`
+            + `"now": mtp.Status.toLowerCase() == "open" && mtp.Mtp == 0 && mtp.RaceStatus.toLowerCase() != "off",`
+            + `"off": mtp.Status.toLowerCase() == "open" && mtp.Mtp == 0 && mtp.RaceStatus.toLowerCase() == "off"`
             + `}'
-            data-ng-bind='"R" + mtp.RaceNum  + " MTP " + mtp.Mtp'
             >
-          </div>
-          <div class='mtp-wrapper off'
-            data-ng-if='mtp.RaceStatus.toLowerCase() == "off"'
-            >
-            <span data-ng-bind='"R" + mtp.RaceNum  + " OFF"'></span>
-            <i class='fa fa-lock'></i>
-          </div>
-          <div class='mtp-wrapper closed'
-            data-ng-if='mtp.Status.toLowerCase() == "closed"'
-            data-ng-bind='"FINISHED"'
-            >
+            <span data-ng-bind='mtp | mtpText'></span>
+            <i data-ng-show='mtp.Mtp == 0 && mtp.RaceStatus.toLowerCase() == "off"' class='fa fa-lock'></i>
           </div>
         </div>
       `
