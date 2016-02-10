@@ -3,7 +3,6 @@
     user: getUserInfo(),
     tick: 0,
     toc: 10,
-    closedTracks: [],
     tracksSent: []
   };
   const WAGERS_CHANNEL = 'v2-wagers';
@@ -300,7 +299,6 @@
   function wagerCheckingStop() {
     pwnies.isSyncing = false;
     pwnies.tick = 0;
-    pwnies.closedTracks = [];
     pwnies.tracksSent = [];
 
     if (!pwnies.timeouts) {
@@ -317,9 +315,6 @@
 
   function wagerCheckingStart() {
     pwnies.isSyncing = true;
-
-    setSyncState(pwnies.isSyncing);
-    updateSyncButton(pwnies.isSyncing);
 
     processWagers(true);
   }
@@ -373,6 +368,8 @@
         return pushDiffWagers(wagersBefore, tWagers, forceSendAllWagers);
       })
       .then(function() {
+        updateSyncButton(pwnies.isSyncing, true);
+
         // Go do it all again
         if (!pwnies.timeouts) {
           pwnies.timeouts = {};
@@ -640,6 +637,8 @@
       }
 
       if (forceSendAllWagers) {
+        setSyncState(pwnies.isSyncing);
+
         diffWagers = wagersAfter;
 
         console.debug(`Sending bulk wagers...`, diffWagers); // eslint-disable-line
@@ -669,9 +668,11 @@
         pwnies.PubNub.publish({
           channel: WAGERS_CHANNEL,
           message: data,
-          callback: resolve
+          callback: function() {}
         });
       });
+
+      return resolve();
     });
   }
 
@@ -691,7 +692,7 @@
     });
   }
 
-  function updateSyncButton(isSyncing) {
+  function updateSyncButton(isSyncing, skipPause) {
     const $btn = $('body').find('#syncButton'); // eslint-disable-line
     const $span = $btn.find('span');
     const $indicator = $btn.find('div');
@@ -705,11 +706,16 @@
       $indicator.removeClass('on');
     }
 
-    $btn.attr('disabled', 'disabled');
+    if (!skipPause) {
+      $btn.attr('disabled', 'disabled');
 
-    setTimeout(function() { // eslint-disable-line
+      setTimeout(function() { // eslint-disable-line
+        $btn.removeAttr('disabled');
+      }, 750);
+    }
+    else {
       $btn.removeAttr('disabled');
-    }, 750);
+    }
   }
 
   function slimWagers(wagers) {
