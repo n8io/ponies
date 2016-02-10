@@ -25,6 +25,7 @@
     "docker:rebuild": "npm run docker:clean && npm run docker:build",
     "docker:restart": "npm run docker:clean:containers && npm run docker:prep && npm run docker:up",
     "docker:up": "docker-compose scale web=1 haproxy=1 mysql=1",
+    "dropbox": "cp ./dist/js/twinspires.js ~/Dropbox/Public/hosted/ponies/twinspires.js",
     "gulp": "gulp",
     "lint": "gulp lint",
     "postinstall": "bower install && gulp",
