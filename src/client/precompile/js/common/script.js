@@ -15,6 +15,12 @@
   }
 
   function onBetToggleClick() {
+    const $ifm = $('iframe');
+
+    if (!$ifm.attr('src')) {
+      $('iframe').attr('src', 'https://m.twinspires.com');
+    }
+
     $('body').toggleClass('bet-shown'); // eslint-disable-line
   }
 })();
