@@ -48,7 +48,7 @@
           console.debug(`Setting hide to undefined.`, track); // eslint-disable-line
 
           track.hide = undefined;
-        }, 1000 * 30);
+        }, 1000 * 60 * 5);
 
         return true;
       }
