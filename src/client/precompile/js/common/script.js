@@ -16,10 +16,10 @@
   }
 
   function onBetToggleClick() {
-    const $ifm = $('iframe');
+    const $ifm = $('iframe'); // eslint-disable-line
 
     if (!$ifm.attr('src')) {
-      $('iframe').attr('src', 'https://m.twinspires.com');
+      $('iframe').attr('src', 'https://m.twinspires.com'); // eslint-disable-line
     }
 
     $('body').toggleClass('bet-shown'); // eslint-disable-line

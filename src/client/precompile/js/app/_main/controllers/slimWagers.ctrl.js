@@ -313,29 +313,6 @@
       });
     }
 
-    function showSyncToast(user) {
-      let msg = ``;
-
-      if (!user || !user.firstName) {
-        return;
-      }
-
-      if (user.email === cfg.user.email) {
-        msg = `You are ${user.isSyncing ? '' : 'not'} syncing`;
-        vm.me.isSyncing = user.isSyncing;
-      }
-      else {
-        msg = `${user.firstName} is ${user.isSyncing ? '' : 'not'} syncing`;
-      }
-
-      if (user.isSyncing) {
-        toastr.success(msg);
-      }
-      else {
-        toastr.error(msg);
-      }
-    }
-
     function mapToUserInfo(user) {
       let data;
       let state = {};
