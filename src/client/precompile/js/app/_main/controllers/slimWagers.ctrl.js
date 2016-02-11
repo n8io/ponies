@@ -6,9 +6,10 @@
     .controller('SlimWagersController', slimWagersController)
     ;
 
-  function slimWagersController($timeout, $location, toastr, EnumService, ConfigService, PubNub) {
+  function slimWagersController($timeout, $interval, $location, toastr, EnumService, ConfigService, PubNub) {
     const vm = this; // eslint-disable-line
     const channels = EnumService.PubNub.Channels;
+    const emailRegEx = /^(?!.{253,})[\w'-]+(?:\.[\w'-]+)*(?:\+[\w'-]+(\.[\w'-]+)*)?@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/ig;
     let isLoading = true;
     let pNub = null;
     let cfg = null;
@@ -78,6 +79,7 @@
         })
         .then(function(data) {
           onHereNowReceived(data);
+          startHereNowInterval();
         })
         .then(function() {
           console.info(`Finished PubNub initialization.`); // eslint-disable-line
@@ -217,53 +219,49 @@
     }
 
     function onPresenceEventReceived(ev) { // eslint-disable-line
+      console.debug(`Presence state changed`, ev); // eslint-disable-line
+
+      if (!emailRegEx.test(ev.uuid)) {
+        return; // Not a valid dude, skip
+      }
+
       switch (ev.action) {
         case 'state-change':
           return onPresenceStateChange(ev);
-        case 'join':
-          return onPresenceJoin(ev);
-        case 'leave':
-          return onPresenceLeave(ev);
+        // case 'join':
+        //   return onPresenceJoin(ev);
+        // case 'leave':
+        //   return onPresenceLeave(ev);
         default:
           break;
       }
     }
 
     function onHereNowReceived(data) { // eslint-disable-line
-      data.uuids.forEach(function(uuid) {
-        updatePresences(uuid);
-      });
-    }
-
-    function onPresenceJoin(ev) {
-      console.debug('Presence join event received...', ev); // eslint-disable-line
-
-      if (ev.uuid === cfg.user.email) {
-        // Ignore, it's just me
-        console.debug(`Ignoring because it is just me joining the channel.`); // eslint-disable-line
-
-        return;
-      }
-
       $timeout(function() {
-        updatePresences(ev);
-      });
-    }
+        const peeps = data
+          .uuids
+          .map(mapToUserInfo)
+          ;
 
-    function onPresenceLeave(ev) {
-      console.debug('Presence leave event received...', ev); // eslint-disable-line
-
-      $timeout(function() {
-        updatePresences(ev);
+        vm.presences = peeps;
       });
     }
 
     function onPresenceStateChange(ev) {
       console.debug('Presence state change event received...', ev); // eslint-disable-line
 
-      $timeout(function() {
-        updatePresences(ev);
-      });
+      updateSyncState(mapToUserInfo(ev));
+    }
+
+    function startHereNowInterval() {
+      $interval(function() {
+        pNub.here_now({
+          channel: channels.WAGERS,
+          state: true,
+          callback: onHereNowReceived
+        });
+      }, 5000);
     }
 
     function getNewTrackFromTrackResult(trackResult) {
@@ -288,38 +286,31 @@
       // ]);
     }
 
-    function updatePresences(ev) {
-      const foundPresence = vm.presences.find(function(p) {
-        return p.email === ev.uuid;
-      });
-      const user = mapToUserInfo(ev);
-      let before = foundPresence ? foundPresence.isSyncing : undefined;
-
-      if (ev.action === 'leave') {
-        vm.presences = vm.presences.filter(function(p) {
-          return p.email !== ev.uuid;
+    function updateSyncState(user) {
+      $timeout(function() {
+        const foundPresence = vm.presences.find(function(p) {
+          return p.email === user.email;
         });
 
-        return;
-      }
+        let before = foundPresence ? foundPresence.isSyncing : undefined;
 
-      if (!foundPresence) {
-        vm.presences.push(mapToUserInfo(ev));
-      }
-      else {
+        if (!foundPresence) {
+          return;
+        }
+
         vm.presences = vm.presences.map(function(p) {
-          if (p.email === ev.uuid) {
+          if (p.email === user.email) {
             before = !!p.isSyncing;
             p = user;
           }
 
           return p;
         });
-      }
 
-      if (!isLoading && before !== user.isSyncing) {
-        showSyncToast(user);
-      }
+        if (!isLoading && before !== user.isSyncing) {
+          // showSyncToast(user);
+        }
+      });
     }
 
     function showSyncToast(user) {
@@ -369,7 +360,7 @@
       }
 
       if (data.email === cfg.user.email) {
-        Object.assign(data, cfg.user, data);
+        data = Object.assign({}, cfg.user, data);
       }
 
       return data;

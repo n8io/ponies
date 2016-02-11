@@ -1,8 +1,7 @@
 (function() {
   const pwnies = {
-    user: getUserInfo(),
     tick: 0,
-    toc: 10,
+    toc: 30,
     tracksSent: []
   };
   const WAGERS_CHANNEL = 'v2-wagers';
@@ -124,12 +123,13 @@
 
       return new Promise(function(resolve) {
         setTimeout(function() { // eslint-disable-line
+          pwnies.user = getUserInfo();
           pwnies.wagerCreds = $('#iWager')[0].contentWindow.Cdi.AppConfig.WS; // eslint-disable-line
 
           console.debug(`... iframe creds found.`); // eslint-disable-line
 
           return resolve();
-        }, 1000);
+        }, 3000);
       });
     }
 
@@ -244,7 +244,9 @@
       return resolve(PUBNUB.init({ // eslint-disable-line
         'publish_key': '{{pubsub_publish_key}}',
         'subscribe_key': '{{pubsub_subscribe_key}}',
-        ssl: window.location.protocol.indexOf('s') > -1 // eslint-disable-line
+        heartbeat: 60, // timeout in 1min if I leave
+        ssl: window.location.protocol.indexOf('s') > -1, // eslint-disable-line
+        uuid: pwnies.user.email
       }));
     })
     .then(function(pubNubInstance) {
@@ -928,6 +930,8 @@
         isSyncing: pwnies && pwnies.isSyncing
       };
     }
+
+    console.error(`Could not get user info!`); // eslint-disable-line
 
     return {};
   }
