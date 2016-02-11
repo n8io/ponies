@@ -2,6 +2,7 @@
   const oneMinute = 1000 * 60;
 
   $('.btn-bet').on('click', onBetToggleClick); // eslint-disable-line
+  $('.bet-overlay').on('click', onBetToggleClick); // eslint-disable-line
 
   setInterval(updateTimestamps, oneMinute); // eslint-disable-line
 
