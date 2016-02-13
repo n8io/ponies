@@ -19,6 +19,9 @@ function routeHandler(app, auth) {
       pubNub: {
         subscribeKey: process.env.PUBNUB_SUBSCRIBE_KEY
       },
+      firebase: {
+        baseUri: process.env.FIREBASE_BASE_URI
+      },
       user: _.pick(req.user, [
         'email',
         'fullName',

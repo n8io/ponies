@@ -113,6 +113,7 @@
     "gulp-mocha": "^2",
     "gulp-nodemon": "^2",
     "gulp-reload": "0",
+    "gulp-run-sequence": "^0.3.2",
     "gulp-stylint": "^3",
     "istanbul": "^0",
     "json2yaml": "^1",

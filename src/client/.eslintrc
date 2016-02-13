@@ -3,13 +3,10 @@
     "browser": true
   },
   "globals": {
-    "angular": true,
     "window": true,
     "document": true,
     "$": true,
-    "_": true
-  },
-  "plugins": [
-    "angular"
-  ]
+    "_": true,
+    "Firebase": true
+  }
 }

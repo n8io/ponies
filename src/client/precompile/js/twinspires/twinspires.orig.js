@@ -9,8 +9,6 @@
   const MESSAGE_TYPE_WAGERS = 'wagers';
   const threeSeconds = 1000 * 3;
   const isMobile = window.location.href.toLowerCase().indexOf('//m.twinspires.com') > -1; // eslint-disable-line
-  let trackDayRef;
-  let tracksRef;
   // const sevenSeconds = 1000 * 7;
   // const thirtySeconds = 1000 * 30;
   // const oneMinute = 1000 * 30;
@@ -26,9 +24,9 @@
 
     window.pwnies = true; // eslint-disable-line
 
-    injectElements()
+    clearConsole()
       .then(function() {
-        return clearConsole();
+        return injectElements();
       })
       .then(function() {
         return initializeControlData();
@@ -42,16 +40,17 @@
         return initalizeTracks();
       })
       .then(function() {
-        return initFirebase();
+        return initializePubNub();
       })
       .then(function() {
-        console.log(`Finished initialization.`, pwnies); // eslint-disable-line
+        console.log(`Finished init.`, pwnies); // eslint-disable-line
+
+        window.pwnies = pwnies; // eslint-disable-line
 
         return;
       })
       .then(function() {
-        // TODO: Get existing wagers and their tracks/races
-        return;
+        return initializeWagerChecks();
       })
       ;
   }
@@ -68,8 +67,7 @@
     const scripts = [
       '//cdn.pubnub.com/pubnub-3.7.18.min.js',
       '//cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.1/moment.min.js',
-      '//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js',
-      '//cdn.firebase.com/js/client/2.4.0/firebase.js'
+      '//cdnjs.cloudflare.com/ajax/libs/lodash.js/4.0.0/lodash.min.js'
     ];
 
     return Promise
@@ -239,69 +237,55 @@
     });
   }
 
-  function initFirebase() {
-    const baseUri = '{{firebase_base_uri}}';
+  function initializePubNub() {
+    return new Promise(function(resolve) {
+      console.debug(`Initing PubNub...`); // eslint-disable-line
 
-    trackDayRef = new Firebase(`${baseUri}/${getDataKey()}`);
+      return resolve(PUBNUB.init({ // eslint-disable-line
+        'publish_key': '{{pubsub_publish_key}}',
+        'subscribe_key': '{{pubsub_subscribe_key}}',
+        heartbeat: 60, // timeout in 1min if I leave
+        ssl: window.location.protocol.indexOf('s') > -1, // eslint-disable-line
+        uuid: pwnies.user.email
+      }));
+    })
+    .then(function(pubNubInstance) {
+      console.debug(`PubNub initialized.`); // eslint-disable-line
 
-    console.debug(`Fetching initial tracks data...`, baseUri); // eslint-disable-line
+      pwnies.PubNub = pubNubInstance;
 
-    tracksRef = trackDayRef.child('tracks');
+      $(window).bind('unload',function() { // eslint-disable-line
+        pwnies.isSyncing = false; // eslint-disable-line
 
-    return new Promise((resolve, reject) => {
-      tracksRef.on('value', resolve, reject);
-    });
+        pwnies.PubNub.state({
+          channel: WAGERS_CHANNEL,
+          state: getUserInfoSlim(),
+          callback: function() {},
+          error: function() {}
+        });
+      });
+
+      return new Promise(function(resolve) {
+        pwnies.PubNub.subscribe({
+          channel: WAGERS_CHANNEL,
+          message: function() {},
+          state: getUserInfoSlim(),
+          connect: function() {
+            console.debug(`Successfully subscribed to ${WAGERS_CHANNEL} channel.`); // eslint-disable-line
+
+            return resolve(pwnies.PubNub);
+          }
+        });
+      });
+    })
+    ;
   }
 
-  // function initializePubNub() {
-  //   return new Promise(function(resolve) {
-  //     console.debug(`Initing PubNub...`); // eslint-disable-line
+  function initializeWagerChecks() {
+    console.debug(`Initializing wager check interval...`); // eslint-disable-line
 
-  //     return resolve(PUBNUB.init({ // eslint-disable-line
-  //       'publish_key': '{{pubsub_publish_key}}',
-  //       'subscribe_key': '{{pubsub_subscribe_key}}',
-  //       heartbeat: 60, // timeout in 1min if I leave
-  //       ssl: window.location.protocol.indexOf('s') > -1, // eslint-disable-line
-  //       uuid: pwnies.user.email
-  //     }));
-  //   })
-  //   .then(function(pubNubInstance) {
-  //     console.debug(`PubNub initialized.`); // eslint-disable-line
-
-  //     pwnies.PubNub = pubNubInstance;
-
-  //     $(window).bind('unload',function() { // eslint-disable-line
-  //       pwnies.isSyncing = false; // eslint-disable-line
-
-  //       pwnies.PubNub.state({
-  //         channel: WAGERS_CHANNEL,
-  //         state: getUserInfoSlim(),
-  //         callback: function() {},
-  //         error: function() {}
-  //       });
-  //     });
-
-  //     return new Promise(function(resolve) {
-  //       pwnies.PubNub.subscribe({
-  //         channel: WAGERS_CHANNEL,
-  //         message: function() {},
-  //         state: getUserInfoSlim(),
-  //         connect: function() {
-  //           console.debug(`Successfully subscribed to ${WAGERS_CHANNEL} channel.`); // eslint-disable-line
-
-  //           return resolve(pwnies.PubNub);
-  //         }
-  //       });
-  //     });
-  //   })
-  //   ;
-  // }
-
-  // function initializeWagerChecks() {
-  //   console.debug(`Initializing wager check interval...`); // eslint-disable-line
-
-  //   wagerCheckingStart();
-  // }
+    wagerCheckingStart();
+  }
 
   function toggleSync() {
     pwnies.isSyncing = !pwnies.isSyncing;
@@ -961,11 +945,5 @@
       lastName: data.lastName,
       isSyncing: data.isSyncing
     };
-  }
-
-  function getDataKey() {
-    const date = moment.utc().format(`YYYYMMDD`); // eslint-disable-line
-
-    return `track-day-${date}`;
   }
 })();

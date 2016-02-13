@@ -2,7 +2,7 @@
   'use strict';
 
   angular
-    .module('app')
+    .module('app.controllers')
     .controller('SlimWagersController', slimWagersController)
     ;
 
@@ -23,7 +23,7 @@
       vm.me = {isSyncing: undefined};
 
       ConfigService
-        .getConfig()
+        .get()
         .then(function(configData) {
           cfg = configData;
 
