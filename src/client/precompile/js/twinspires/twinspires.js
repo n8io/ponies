@@ -7,8 +7,10 @@
   const WAGERS_CHANNEL = 'v2-wagers';
   const MESSAGE_TYPE_TRACK_RESULTS = 'trackResults';
   const MESSAGE_TYPE_WAGERS = 'wagers';
+  const FIREBASE_BASE_URI = '{{firebase_base_uri}}';
   const threeSeconds = 1000 * 3;
   const isMobile = window.location.href.toLowerCase().indexOf('//m.twinspires.com') > -1; // eslint-disable-line
+  let trackDaysRef;
   let trackDayRef;
   let tracksRef;
   // const sevenSeconds = 1000 * 7;
@@ -36,13 +38,17 @@
       .then(function() {
         return initializePoolTypes();
       })
-      .then(function(poolTypes) {
-        pwnies.poolTypes = poolTypes;
-
+      .then(function() {
         return initalizeTracks();
       })
       .then(function() {
         return initFirebase();
+      })
+      .then(function() {
+        return firebaseUpsertPoolTypes(pwnies.poolTypes);
+      })
+      .then(function() {
+        return firebaseUpsertTracks(pwnies.tracks);
       })
       .then(function() {
         console.log(`Finished initialization.`, pwnies); // eslint-disable-line
@@ -50,8 +56,7 @@
         return;
       })
       .then(function() {
-        // TODO: Get existing wagers and their tracks/races
-        return;
+        return wagerCheckingStart();
       })
       ;
   }
@@ -215,10 +220,12 @@
 
   function initializePoolTypes() {
     return new Promise(function(resolve) {
-      console.debug('Fetching pool types...'); // eslint-disable-line
+      console.debug('Fetching pool types...', pwnies.wagerCreds.poolTypesUrl); // eslint-disable-line
 
       $.getJSON(pwnies.wagerCreds.poolTypesUrl, function(data) {
-        console.debug('... pool types received.'); // eslint-disable-line
+        console.debug('... pool types received.', data.PoolTypes); // eslint-disable-line
+
+        pwnies.poolTypes = data.PoolTypes;
 
         return resolve(data.PoolTypes);
       });
@@ -227,12 +234,12 @@
 
   function initalizeTracks() {
     return new Promise(function(resolve) {
-      console.debug(`Fetching track list...`); // eslint-disable-line
+      console.debug(`Fetching track list...`, pwnies.wagerCreds.trackListUrl); // eslint-disable-line
 
       $.getJSON(pwnies.wagerCreds.trackListUrl, function(data) {
-        console.debug(`... track list received.`); // eslint-disable-line
+        console.debug(`... track list received.`, data.Tracks); // eslint-disable-line
 
-        pwnies.tracks = data.Tracks;
+        pwnies.tracks = slimTracks(data.Tracks);
 
         return resolve();
       });
@@ -240,16 +247,16 @@
   }
 
   function initFirebase() {
-    const baseUri = '{{firebase_base_uri}}';
+    const trackDaysUri = `${FIREBASE_BASE_URI}/trackDays`;
 
-    trackDayRef = new Firebase(`${baseUri}/${getDataKey()}`);
+    trackDaysRef = new Firebase(trackDaysUri);
 
-    console.debug(`Fetching initial tracks data...`, baseUri); // eslint-disable-line
+    console.debug(`Retrieving today's track day data...`, `${trackDaysUri}/${getTodaysTrackDayKey()}`); // eslint-disable-line
 
-    tracksRef = trackDayRef.child('tracks');
+    trackDayRef = trackDaysRef.child(getTodaysTrackDayKey());
 
     return new Promise((resolve, reject) => {
-      tracksRef.on('value', resolve, reject);
+      trackDayRef.on('value', resolve, reject);
     });
   }
 
@@ -338,76 +345,268 @@
   }
 
   function processWagers(forceSendAllWagers) {
-    const wagersBefore = pwnies.wagers || [];
-    const tracksBefore = (pwnies.tracksSent || []).concat();
-    let tWagers = [];
-
     getWagersPromise()
-      .then(function(wagers) {
+      .then((wagers) => {
         wagers.sort(function(a, b) {
-          return b.timestamp - a.timestamp;
+          return a.timestamp - b.timestamp;
         });
 
         pwnies.wagers = wagers.concat();
-        tWagers = wagers.concat();
 
-        console.debug(`Wagers data retrieved...`, tWagers); // eslint-disable-line
+        console.debug(`Wagers data retrieved.`, wagers); // eslint-disable-line
 
         return wagers;
       })
-      .then(function() {
+      .then(() => {
         return getUniqueTracksPromise(pwnies.wagers);
       })
-      .then(function(uniqueTracks) {
-        return getTracksMtpPromise(uniqueTracks);
+      .then((tracks) => {
+        return getTracksMtpPromise(tracks);
       })
-      .then(function(tracks) {
-        if (!forceSendAllWagers) {
-          tracks = removeStaticTracks(tracks);
-        }
-
-        return getAllTrackResultsPromise(tracks, tWagers);
+      .then((tracks) => {
+        return getAllTrackResultsPromise(tracks, pwnies.wagers);
       })
-      .then(function(allTrackResults) {
-        const slimTracks = slimDownTracksToOnlyThoseWithWagers(allTrackResults.concat(), tWagers);
+      .then((allTrackResults) => {
+        const slimTracks = slimDownTracksToOnlyThoseWithWagers(allTrackResults, pwnies.wagers);
 
         return getAllTracksProgramInfo(slimTracks);
       })
-      .then(function(allTrackResults) {
-        return getAllTracksOddsInfo(allTrackResults);
+      .then((slimTracks) => {
+        return getAllTracksOddsInfo(slimTracks);
       })
-      .then(function(allTrackResults) {
-        const a = allTrackResults.concat(); // Already slimmed down above
-        const b = tracksBefore.concat();
-
-        return pushDiffTrackResultsPromise(b, a, forceSendAllWagers);
+      .then((slimTracks) => {
+        return firebaseUpsertTrackDay(slimTracks);
       })
-      .then(function() {
-        return pushDiffWagers(wagersBefore, tWagers, forceSendAllWagers);
-      })
-      .then(function() {
-        updateSyncButton(pwnies.isSyncing, true);
+      // .then(() => {
+      //   return firebaseUpsertWagers(pwnies.wagers);
+      // })
+      // .then(function(allTrackResults) {
+      //   const a = allTrackResults.concat(); // Already slimmed down above
+      //   const b = tracksBefore.concat();
 
-        // Go do it all again
-        if (!pwnies.timeouts) {
-          pwnies.timeouts = {};
-        }
+      //   return pushDiffTrackResultsPromise(b, a, forceSendAllWagers);
+      // })
+      // .then(function() {
+      //   return pushDiffWagers(wagersBefore, tWagers, forceSendAllWagers);
+      // })
+      // .then(function() {
+      //   updateSyncButton(pwnies.isSyncing, true);
 
-        if (pwnies.timeouts.wc) {
-          clearTimeout(pwnies.timeouts.wc);
-        }
+      //   // Go do it all again
+      //   if (!pwnies.timeouts) {
+      //     pwnies.timeouts = {};
+      //   }
 
-        if (pwnies.isSyncing) {
-          pwnies.tick++;
+      //   if (pwnies.timeouts.wc) {
+      //     clearTimeout(pwnies.timeouts.wc);
+      //   }
 
-          const sendAllWagers = pwnies.tick % pwnies.toc === 0;
+      //   if (pwnies.isSyncing) {
+      //     pwnies.tick++;
 
-          pwnies.timeouts.wc = setTimeout(function() { // eslint-disable-line
-            processWagers(sendAllWagers);
-          }, threeSeconds);
-        }
+      //     const sendAllWagers = pwnies.tick % pwnies.toc === 0;
+
+      //     pwnies.timeouts.wc = setTimeout(function() { // eslint-disable-line
+      //       processWagers(sendAllWagers);
+      //     }, threeSeconds);
+      //   }
+      // })
+      .then((slimTracks) => {
+        pwnies.slimTracks = slimTracks;
+
+        console.debug(`pwnies.slimTracks[0]`, pwnies.slimTracks[0]); // eslint-disable-line
+
+        return;
       })
       ;
+  }
+
+  function firebaseUpsertPoolTypes(poolTypes) {
+    const poolTypesUri = `${FIREBASE_BASE_URI}/pooltypes`;
+    const poolTypesRef = new Firebase(poolTypesUri);
+
+    console.debug(`Retrieving current pool types...`, poolTypesUri); // eslint-disable-line
+
+    return new Promise((resolve) => {
+      poolTypes.forEach((pt) => {
+        poolTypesRef.child(pt.Code).transaction((existingPoolType) => {
+          if (!existingPoolType) {
+            return pt;
+          }
+        });
+      });
+
+      return resolve();
+    });
+  }
+
+  function firebaseUpsertTracks(tracks) {
+    const tracksUri = `${FIREBASE_BASE_URI}/tracks`;
+    const tracksRef = new Firebase(tracksUri);
+
+    console.debug(`Retrieving current tracks...`, tracksUri); // eslint-disable-line
+
+    return new Promise((resolve) => {
+      tracks.forEach((t) => {
+        tracksRef.child(t.BrisCode).transaction((existingTrack) => {
+          if (!existingTrack) {
+            return t;
+          }
+        });
+      });
+
+      return resolve();
+    });
+  }
+
+  function firebaseUpsertWagers(wagers) {
+    return new Promise((resolve) => {
+      wagers.forEach((wager) => {
+        trackDayRef.child(wager.id).update(wager);
+      });
+
+      return resolve();
+    });
+  }
+
+  function firebaseUpsertTrackDay(slimTracks) {
+    const promises = getAllTrackRefsPromise(slimTracks);
+
+    return Promise
+      .all(promises)
+      .then(() => {
+        // Update nextRace to track
+        const nextRacePromises = getAllTrackNextRaceRefsPromise(slimTracks);
+
+        return Promise.all(nextRacePromises);
+      })
+      .then(() => {
+        // Add races to track
+        const racesPromises = getAllTrackRacesPromise(slimTracks);
+
+        return Promise.all(racesPromises);
+      })
+      .then(() => {
+        // Add horses to races
+        const horsesPromises = getAllTrackRaceHorsesPromise(slimTracks);
+
+        return Promise.all(horsesPromises);
+      })
+      .then(() => {
+        // Add odds to horses
+        const oddsPromises = getAllTrackRaceHorseOddsPromise(slimTracks);
+
+        return Promise.all(oddsPromises);
+      })
+      ;
+  }
+
+  function getAllTrackRaceHorseOddsPromise(tracks) {
+    return tracks.map((t) => {
+      return t.races.map((r) => {
+        return r.horses.map((h) => {
+          return getTrackRaceHorseOddsPromise(t, r, h);
+        });
+      });
+    });
+  }
+
+  function getTrackRaceHorseOddsPromise(track, race, horse) {
+    return trackDayRef.child(track.BrisCode).child(`races/${race.id}/horses/${horse.id}/odds`).update(horse.odds);
+  }
+
+  function getAllTrackRaceHorsesPromise(tracks) {
+    return tracks.map((t) => {
+      return t.races.map((r) => {
+        return r.horses.map((h) => {
+          return getTrackRaceHorsesPromise(t, r, h);
+        });
+      });
+    });
+  }
+
+  function getTrackRaceHorsesPromise(track, race, horse) {
+    return new Promise((resolve) => {
+      trackDayRef.child(track.BrisCode).child(`races/${race.id}/horses/${horse.id}`).transaction((existingHorses) => {
+        if (!existingHorses) {
+          return _.pick(horse, [
+            'HorseName',
+            'ML',
+            'PostPosition',
+            'ProgramNumber',
+            'Sex',
+            'Weight'
+          ]);
+        }
+      }, (err, committed, snapshot) => {
+        return resolve(snapshot.val());
+      });
+    });
+  }
+
+  function getAllTrackRacesPromise(tracks) {
+    return tracks.map((t) => {
+      return t.races.map((r) => {
+        return getTrackRacesPromise(t, r);
+      });
+    });
+  }
+
+  function getTrackRacesPromise(track, race) {
+    return new Promise((resolve) => {
+      trackDayRef.child(track.BrisCode).child(`races/${race.id}`).transaction((existingRace) => {
+        if (!existingRace) {
+          return _.pick(race, [
+            'actualPostTime',
+            'metadata'
+          ]);
+        }
+      }, (err, committed, snapshot) => {
+        return resolve(snapshot.val());
+      });
+    });
+  }
+
+  function getAllTrackNextRaceRefsPromise(tracks) {
+    return tracks.map(getNextRaceRefPromise);
+  }
+
+  function getNextRaceRefPromise(track) {
+    return trackDayRef.child(track.BrisCode).update({nextRace: track.nextRace});
+  }
+
+  function getAllTrackRefsPromise(tracks) {
+    return tracks.map(getTrackRefPromise);
+  }
+
+  function getTrackRefPromise(track) {
+    return new Promise((resolve, reject) => {
+      trackDayRef.child(track.BrisCode).transaction((currentTrack) => {
+        if (!currentTrack) {
+          return _.pick(track, [
+            'BrisCode',
+            'DisplayName',
+            'EventCode',
+            'TrackType'
+          ]);
+        }
+      }, (err, committed, snapshot) => {
+        if (err) {
+          console.error(`Failed to upsert track.`, track); // eslint-disable-line
+
+          return reject(err);
+        }
+
+        if (committed) {
+          console.debug(`Upserted new ${track.BrisCode} track record.`); // eslint-disable-line
+        }
+        else {
+          console.debug(`${track.BrisCode} track record already exists.`); // eslint-disable-line
+        }
+
+        return resolve(snapshot.val());
+      });
+    });
   }
 
   function getWagersPromise() {
@@ -421,11 +620,13 @@
   }
 
   function getUniqueTracksPromise(wagers) {
+    console.debug(`Consolidating to unique tracks by current wagers...`, wagers); // eslint-disable-line
+
     return new Promise(function(resolve) {
       const uniqTracks = [];
       const tracks = wagers.map(function(w) {
         return pwnies.tracks.find(function(t) {
-          return t.BrisCode === w.track.BrisCode;
+          return t.BrisCode === w.BrisCode;
         });
       });
 
@@ -449,46 +650,39 @@
     return Promise.all(promises);
   }
 
-  function getAllTracksProgramInfo(tracks) {
-    const promises = tracks.map(getTrackProgramInfoPromise);
-
-    return Promise.all(promises);
-  }
-
-  function getAllTrackResultsPromise(tracks) {
-    const promises = tracks.map(getTrackResultsPromise);
-
-    return Promise.all(promises);
-  }
-
-  function getTrackOddsInfoPromise(allTrackResult) {
-    const promises = allTrackResult.races.map(function(r) {
-      return getTrackRaceOddsInfoPromise(allTrackResult.track, r);
+  function getTrackOddsInfoPromise(slimTrack) {
+    const promises = slimTrack.races.map(function(r) {
+      return getTrackRaceOddsInfoPromise(slimTrack, r);
     });
 
     return Promise
       .all(promises)
       .then(function(races) {
-        allTrackResult.races = races;
+        slimTrack.races = races;
 
-        return allTrackResult;
+        return slimTrack;
       })
       ;
   }
 
   function getTrackRaceOddsInfoPromise(track, race) {
-    const url = `${pwnies.wagerCreds.oddsUrl}&track=${track.BrisCode}&type=${track.nextRace.TrackType}&race=${race.id}`;
+    const url = `${pwnies.wagerCreds.oddsUrl}&track=${track.BrisCode}&type=${track.TrackType}&race=${race.id}`;
 
     return new Promise(function(resolve) {
-      console.debug(`Fetching ${track.BrisCode} track odds info...`, url); // eslint-disable-line
+      console.debug(`Retrieving ${track.BrisCode} track odds info...`, url); // eslint-disable-line
 
       $.getJSON(url, function(data) { // eslint-disable-line
+        console.debug(`...returned ${track.BrisCode} track odds info.`, data.WinOdds.Entries); // eslint-disable-line
+
         race.horses = race.horses.map(function(h) {
           h.odds = data.WinOdds.Entries.find(function(odds) {
             return h.ProgramNumber === odds.ProgramNumber;
           });
 
           h.odds = _.omit(h.odds, 'ProgramNumber');
+
+          h.odds.NumOdds = parseFloat(h.odds.NumOdds, 10);
+          h.odds.TextOdds = h.odds.TextOdds.trim();
 
           return h;
         });
@@ -498,15 +692,23 @@
     });
   }
 
-  function getTrackProgramInfoPromise(allTrackResult) {
-    const url = `${pwnies.wagerCreds.programUrl}&track=${allTrackResult.track.BrisCode}&type=${allTrackResult.track.nextRace.TrackType}`;
+  function getAllTracksProgramInfo(tracks) {
+    const promises = tracks.map(getTrackProgramInfoPromise);
+
+    return Promise.all(promises);
+  }
+
+  function getTrackProgramInfoPromise(slimTrack) {
+    const url = `${pwnies.wagerCreds.programUrl}&track=${slimTrack.BrisCode}&type=${slimTrack.TrackType}`;
 
     return new Promise(function(resolve) {
-      console.debug(`Fetching ${allTrackResult.track.BrisCode} track program info...`, url); // eslint-disable-line
+      console.debug(`Retrieving ${slimTrack.BrisCode} track program info...`, url); // eslint-disable-line
 
       $.getJSON(url, function(data) { // eslint-disable-line
-        allTrackResult.track.conditions = data.ProgramTracks[0].Conditions;
-        allTrackResult.races.forEach(function(r) {
+        console.debug(`...returned ${slimTrack.BrisCode} track program info.`, data.ProgramTracks[0]); // eslint-disable-line
+
+        slimTrack.conditions = data.ProgramTracks[0].Conditions;
+        slimTrack.races.forEach(function(r) {
           const foundRace = data.ProgramTracks[0].Races.find(function(pr) {
             return r.id === parseInt(pr.RaceNum, 0);
           });
@@ -536,6 +738,7 @@
               ]);
 
               horse.id = parseInt(horse.ProgramNumber, 10);
+              horse.PostPosition = parseInt(horse.PostPosition, 10);
 
               return horse;
             });
@@ -544,9 +747,15 @@
           return r;
         });
 
-        return resolve(allTrackResult);
+        return resolve(slimTrack);
       });
     });
+  }
+
+  function getAllTrackResultsPromise(tracks) {
+    const promises = tracks.map(getTrackResultsPromise);
+
+    return Promise.all(promises);
   }
 
   function getTrackResultsPromise(track) {
@@ -557,16 +766,14 @@
     const url = `${pwnies.wagerCreds.resultUrl}&track=${track.BrisCode}&type=${lookups[track.TrackType.toLowerCase()]}`;
 
     return new Promise(function(resolve) {
-      console.debug(`Fetching ${track.BrisCode} track results...`, url); // eslint-disable-line
+      console.debug(`Retrieving ${track.BrisCode} track results...`, url); // eslint-disable-line
 
       $.get(url, function onSuccess(html) { // eslint-disable-line
         const data = parseResultsToJson(html) || {};
 
-        data.track = {
-          BrisCode: track.BrisCode,
-          DisplayName: track.DisplayName,
-          nextRace: track.nextRace
-        };
+        console.debug(`...returned ${track.BrisCode} track results.`, data); // eslint-disable-line
+
+        data.track = track;
 
         return resolve(data);
       });
@@ -577,9 +784,11 @@
     const wc = pwnies.wagerCreds;
 
     return new Promise(function(resolve) {
-      const url = `/php/fw/php_BRIS_BatchAPI/2.3/Tote/CurrentRace?`
+      const url = `https://www.twinspires.com/php/fw/php_BRIS_BatchAPI/2.3/Tote/CurrentRace?`
         + `username=${wc.USERNAME}&password=${wc.PASSWORD}`
         + `&ip=${wc.CDI_CLIENT_IP}&affid=${wc.CDI_SAID}&output=json`;
+
+      console.debug(`Retrieving MTP info...`, url); // eslint-disable-line
 
       $.get(url, function(data) {
         const mtps = data.CurrentRace;
@@ -736,58 +945,152 @@
     }
   }
 
-  function slimWagers(wagers) {
-    const offsetTime = 1000 * 10; // Their server times are a few seconds slow
+  function slimTracks(tracks) {
+    if (!tracks || !tracks.length) {
+      return [];
+    }
 
-    if (!wagers) {
+    return tracks.map(slimTrack);
+  }
+
+  function slimTrack(track) {
+    if (!track) {
       return;
     }
 
-    return wagers.map(function(w) {
-      const newWager = {};
+    const newTrack = {
+      BrisCode: track.BrisCode,
+      DisplayName: track.DisplayName,
+      TrackType: track.TrackType,
+      EventCode: track.EventCode,
+      DomesticTrack: track.DomesticTrack
+    };
 
-      newWager.timestamp = moment.tz(w.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // eslint-disable-line
-      newWager.id = w.serialNumber;
-      newWager.user = _.pick(pwnies.user, ['email', 'firstName', 'lastName', 'accountNum']); // eslint-disable-line
-      newWager.betAmount = parseFloat(w.totalCost, 10);
-      newWager.payoutAmount = parseFloat(w.payoutAmount, 10);
-      newWager.type = pwnies.poolTypes.find(function(pt) {
-        return pt.Code === w.poolType;
-      });
-      newWager.selections = w.runnersList;
-      newWager.race = {id: w.race};
-      newWager.track = pwnies.tracks.find(function(t) {
-        return t.EventCode === w.eventCode;
-      });
-      newWager.eventCode = newWager.track.EventCode;
-      newWager.status = w.status;
-      newWager.refundAmount = w.refundAmount;
+    if (track.nextRace) {
+      newTrack.nextRace = slimNextRace(track.nextRace);
+    }
 
-      return newWager;
-    });
+    return newTrack;
+  }
+
+  function slimRaces(races) {
+    if (!races || !races.length) {
+      return [];
+    }
+
+    return races.map(slimRace);
+  }
+
+  function slimRace(race) {
+    if (!race) {
+      return;
+    }
+
+    const newRace = {
+      id: race.id,
+      wagers: race.wagers
+    };
+
+    if (race.exotics && race.wps) {
+      newRace.results = {
+        exotics: race.exotics,
+        wps: race.wps
+      };
+    }
+
+    return newRace;
+  }
+
+  function slimNextRace(nextRace) {
+    if (!nextRace) {
+      return;
+    }
+
+    const newNextRace = {
+      Mtp: nextRace.Mtp,
+      RaceNum: nextRace.RaceNum,
+      RaceStatus: nextRace.RaceStatus,
+      Status: nextRace.Status,
+      firstPostTimestamp: nextRace.firstPostTimestamp,
+      postTimestamp: nextRace.postTimestamp
+    };
+
+    return newNextRace;
+  }
+
+  function slimWagers(wagers) {
+    if (!wagers || !wagers.length) {
+      return [];
+    }
+
+    return wagers.map(slimWager);
+  }
+
+  function slimWager(wager) {
+    const offsetTime = 1000 * 10; // Their server times are a few seconds slow
+
+    if (!wager) {
+      return;
+    }
+
+    const newWager = {};
+
+    newWager.timestamp = moment.tz(wager.placedDate, 'America/Los_Angeles').toDate().getTime() - offsetTime; // eslint-disable-line
+    newWager.id = wager.serialNumber;
+    newWager.user = _.pick(pwnies.user, ['email', 'firstName', 'lastName', 'accountNum']); // eslint-disable-line
+    newWager.betAmount = parseFloat(wager.totalCost, 10);
+    newWager.payoutAmount = parseFloat(wager.payoutAmount, 10);
+    newWager.poolType = wager.poolType;
+    newWager.selections = wager.runnersList;
+    newWager.race = wager.race;
+    newWager.BrisCode = pwnies.tracks.find(function(t) {
+      return t.EventCode === wager.eventCode;
+    }).BrisCode;
+    newWager.eventCode = wager.eventCode;
+    newWager.status = wager.status;
+    newWager.refundAmount = wager.refundAmount;
+
+    return newWager;
   }
 
   function slimDownTracksToOnlyThoseWithWagers(fullTracks, wagers) {
     const slimTracks = fullTracks
       .filter(function(t) {
         const foundWagers = wagers.filter(function(w) {
-          return t.track.BrisCode === w.track.BrisCode;
+          return t.track.BrisCode === w.BrisCode;
         });
 
-        return foundWagers.length;
+        return foundWagers.length > 0;
       })
       .map(function(t) {
+        const track = slimTrack(t.track);
         const foundWagers = wagers.filter(function(w) {
-          return t.track.BrisCode === w.track.BrisCode;
+          return t.track.BrisCode === w.BrisCode;
         });
 
-        t.races = t.races.filter(function(r) {
-          return !!foundWagers.find(function(w) {
-            return w.track.BrisCode === t.track.BrisCode && w.race.id === r.id;
-          });
-        });
+        track.races = t
+          .races
+          .filter((r) => {
+            return !!foundWagers.find(function(w) {
+              return t.track.BrisCode === w.BrisCode && w.race === r.id;
+            });
+          })
+          .map((r) => {
+            const newRace = {
+              id: r.id,
+              exotics: r.exotics,
+              wps: r.wps
+            };
 
-        return t;
+            newRace.wagers = foundWagers.filter((w) => {
+              return r.id === w.race;
+            });
+
+            return slimRace(newRace);
+          })
+          ;
+
+        return track;
       })
       ;
 
@@ -963,9 +1266,14 @@
     };
   }
 
-  function getDataKey() {
-    const date = moment.utc().format(`YYYYMMDD`); // eslint-disable-line
+  function getTodaysTrackDayKey(localDate) {
+    const now = moment(localDate).utc();
+    const nowHour = now.hour();
 
-    return `track-day-${date}`;
+    if (nowHour < 7 || (nowHour >= 7 && nowHour <= 10)) { // After 2AM ET and before 6AM ET (off hours)
+      now.add(-1, 'd'); // Previous day
+    }
+
+    return `${now.format(`YYYYMMDD`)}`;
   }
 })();
