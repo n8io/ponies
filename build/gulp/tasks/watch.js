@@ -6,7 +6,7 @@ module.exports = function(gulp, plugins, cfg) {
 
     gulp.watch(cfg.js.client.src, ['eslint-client', 'compile-js']);
 
-    gulp.watch(cfg.js.server.src, ['eslint-server']);
+    gulp.watch(cfg.css.src, ['stylus', 'stylint']);
 
     gulp.watch(cfg.js.twinspires.src, ['eslint-client', 'dropbox']);
 

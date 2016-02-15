@@ -12,8 +12,9 @@
     const channels = EnumService.PubNub.Channels;
     let config;
     let pubNub;
+    let isLoading = true;
 
-    vm.tracks = [];
+    vm.presences = [];
 
     activate();
 
@@ -58,8 +59,25 @@
             vm.subscribe = true;
           });
         })
+        .then(() => {
+          return new Promise(function(resolve) {
+            pubNub.here_now({
+              channel: channels.WAGERS,
+              state: true,
+              callback: (data) => {
+                onHereNowReceived(data);
+
+                return resolve();
+              }
+            });
+
+            vm.subscribe = true;
+          });
+        })
         .then((tracks) => {
           console.debug(`Tracks data loaded.`, tracks); // eslint-disable-line
+
+          isLoading = false;
 
           return;
         })
@@ -87,8 +105,61 @@
       });
     }
 
+    function onHereNowReceived(data) {
+      console.debug('Here now data received...', data); // eslint-disable-line
+
+      const peeps = data
+          .uuids
+          .map(mapToUserInfo)
+          ;
+
+      $timeout(() => {
+        vm.presences = peeps;
+      });
+    }
+
     function onPresenceStateChange(ev) {
+      if (isLoading) {
+        return;
+      }
+
+      const supportedActions = {
+        STATE_CHANGE: 'state-change',
+        JOIN: 'join',
+        LEAVE: 'leave',
+        TIMEOUT: 'timeout'
+      };
+
       console.debug('Presence state change event received...', ev); // eslint-disable-line
+
+      switch (ev.action) {
+        case supportedActions.JOIN:
+          pubNub.here_now({
+            channel: channels.WAGERS,
+            state: true,
+            callback: onHereNowReceived
+          });
+          break;
+        case supportedActions.LEAVE:
+        case supportedActions.TIMEOUT:
+          pubNub.here_now({
+            channel: channels.WAGERS,
+            state: true,
+            callback: onHereNowReceived
+          });
+          break;
+        case supportedActions.STATE_CHANGE:
+          $timeout(() => {
+            vm.presences.forEach((p) => {
+              if (p.email === ev.uuid) {
+                p.isSyncing = !!ev.data.isSyncing;
+              }
+            });
+          });
+          break;
+        default:
+          break;
+      }
     }
 
     function processTrackDayView(tracks) {
@@ -118,6 +189,36 @@
       }
 
       return `${now.format(`YYYYMMDD`)}`;
+    }
+
+    function mapToUserInfo(user) {
+      let data;
+      let state = {};
+
+      if (!user) {
+        user = config.user;
+      }
+
+      state = user.data || user.state || {};
+
+      data = {
+        email: state.email || user.uuid || user.email,
+        firstName: state.firstName || user.firstName || user.givenName || undefined,
+        lastName: state.lastName || user.lastName || user.surname || undefined,
+        isSyncing: angular.isDefined(state.isSyncing) ? state.isSyncing : undefined
+      };
+
+      data.fullName = state.fullName || undefined;
+
+      if (!data.fullName && data.firstName && data.lastName) {
+        data.fullName = `${data.firstName} ${data.lastName}`;
+      }
+
+      if (data.email === config.user.email) {
+        data = Object.assign({}, config.user, data);
+      }
+
+      return data;
     }
   }
 })();

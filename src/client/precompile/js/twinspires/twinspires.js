@@ -334,6 +334,7 @@
   function wagerCheckingStart() {
     pwnies.isSyncing = true;
 
+    updateSyncButton(pwnies.isSyncing);
     processWagers(true);
   }
 
@@ -395,7 +396,6 @@
       .then(function() {
         if (forceSendAllTracks) {
           setSyncState(pwnies.isSyncing);
-          updateSyncButton(pwnies.isSyncing, true);
         }
 
         // Go do it all again
