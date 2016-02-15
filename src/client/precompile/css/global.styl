@@ -521,8 +521,14 @@ td.race-cell
   .race-wrapper
     padding 5px 5px 5px 15px
     border-bottom 1px solid #ddd
+    &.pulsate
+      animation pulsate 1s infinite
     .race-name
       font-size 105%
+      &.running:after
+        background url('https://m.twinspires.com/resources/shared/images/loading.gif?v=149079') no-repeat
+        height 20px
+        width 50px
 .wps-container
   padding 2px 5px 3px
   font-size 80%

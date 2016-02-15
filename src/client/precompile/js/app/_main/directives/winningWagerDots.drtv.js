@@ -17,7 +17,7 @@
       template: `
         <div class='wwd-container' data-ng-class='{shown: race.hide === undefined ? race.softHide : race.hide}'>
           <div class='wwd-wrapper'>
-            <div class='wwd-dot' data-ng-repeat='wager in race | raceWinningWagers'>
+            <div class='wwd-dot' data-ng-repeat='wager in race.wagers | toWagerArray | raceWinningWagers'>
             </div>
             <div class='clearfix'></div>
           </div>

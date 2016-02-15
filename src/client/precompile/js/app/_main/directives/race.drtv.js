@@ -17,7 +17,9 @@
       restrict: 'E',
       template: `
         <div class='race-container'>
-          <div class='race-wrapper cursor-pointer' data-ng-click='race.hide = onToggle(race) && !(race.hide === undefined ? race.softHide : race.hide)'>
+          <div class='race-wrapper cursor-pointer'
+            data-ng-click='race.hide = onToggle(race) && !(race.hide === undefined ? race.softHide : race.hide)'
+            data-ng-class='{pulsate: track.nextRace.Mtp == 0 && track.nextRace.RaceStatus.toLowerCase() == "off"}'>
             <div class='race-name float-left' data-ng-bind='"Race " + race.id'>
             </div>
             <wps track='track' race='race' class='float-left'></wps>
@@ -36,6 +38,10 @@
     /* @ngInject */
     function controller($scope, $timeout) {
       $scope.onToggle = onToggle;
+
+      if ($scope.track.nextRace.RaceNum > $scope.race.id + 1) {
+        $scope.race.softHide = true;
+      }
 
       function onToggle(race) {
         if (race.hideTO) {

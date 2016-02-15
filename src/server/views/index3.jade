@@ -11,21 +11,21 @@ append body-content
   #content(layout='row', flex, layout-margin='20', data-ng-controller='V3Controller as vc').bump-bottom
     md-content.width-100pct
       table(cellspacing='0', cellpadding='0').width-100pct
-        tr(data-ng-repeat='track in vc.tracks | orderBy:["-nextRace.Status", "nextRace.Mtp", "nextRace.RaceStatus", "-nextRace.postTimestamp", "DisplayName"]')
+        tr(data-ng-repeat='track in vc.tracks | toArray | orderBy:["-nextRace.Status", "nextRace.Mtp", "nextRace.RaceStatus", "-nextRace.postTimestamp", "DisplayName"]')
           td
             .track-outer(data-ng-class='{finished: track.nextRace.Status.toLowerCase() == "closed"}')
               track(track='track')
               table(cellspacing='0', cellpadding='0', data-ng-hide='track.hide === undefined ? track.softHide : track.hide').width-100pct
-                tr(data-ng-repeat='race in track.races | orderBy:["-id"]', data-ng-show='race.wagers')
+                tr(data-ng-repeat='race in track.races | toRaceArray | orderBy:"-id"', data-ng-show='race.wagers')
                   td(data-ng-class='{final: !!race.wps}').race-cell
                     race(race='race', track='track')
                     table(cellspacing='0', cellpadding='0', data-ng-if='!(race.hide === undefined ? race.softHide : race.hide)').width-100pct
-                      tr(data-ng-repeat='wager in race.wagers | orderBy:["-payoutAmount", "timestamp"]')
+                      tr(data-ng-repeat='wager in race.wagers | orderBy:["-wager.payoutAmount", "wager.timestamp"]')
                         td
                           div(class='wager-container')
                             wager(wager='wager')
               .clearfix
       - if (locals.showDebug)
-        pre.code {{ _.omit(vc.tracks, ['races']) | json}}
+        pre.code {{ vc.tracks | json}}
     sync-status(status='vc.me.isSyncing')
     presence(presences='vc.presences', my-presence='vc.userInfo')

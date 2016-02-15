@@ -27,10 +27,10 @@
           size='20'
           round=''
           title='{{wager.user.firstName + " " + wager.user.lastName}}'
-          default='//www.google.com/broken.jpg'
+          default='identicon'
           letter='wager.user.firstName'>
         </gravatar>
-        <span class='wager-type' data-ng-bind='wager.type.Name'></span>
+        <span class='wager-type' data-ng-bind='wager.poolTypeName'></span>
         <span class='wager-selections' data-ng-bind='wager.selections | selections'></span>
         <span class='wager-amount'
           data-ng-if='wager.status != "PAID" && wager.status != "CANCELED"'

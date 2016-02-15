@@ -17,11 +17,11 @@
       restrict: 'E',
       template: `
         <div class='wps-container'
-          data-ng-show='!!race.wps'
+          data-ng-show='!!race.results.wps'
           data-ng-click='onWpsClick($event)'
           >
           <div class='wps-wrapper'>
-            <span data-ng-bind='race.wps | wpsSelections'>
+            <span data-ng-bind='race.results.wps | wpsSelections'>
             </span>
           </div>
         </div>
