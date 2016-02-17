@@ -43,9 +43,9 @@
         $scope.track.softHide = true;
       }
 
-      const hasActiveRaces = !!_($scope.track.races).values().value().find((r) => {
-        return r.id >= $scope.track.nextRace.RaceNum + ($scope.track.nextRace.RaceStatus.toLowerCase() !== 'off' ? -1 : 0);
-      });
+      const hasActiveRaces = !!_($scope.track.races).values().value().find((r) =>
+        r.id >= $scope.track.nextRace.RaceNum + ($scope.track.nextRace.RaceStatus.toLowerCase() !== 'off' ? -1 : 0)
+      );
 
       if (!hasActiveRaces) {
         $scope.track.softHide = true;

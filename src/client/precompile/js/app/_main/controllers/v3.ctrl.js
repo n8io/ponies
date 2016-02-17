@@ -26,19 +26,17 @@
 
           return initFirebase(config.firebase.baseUri);
         })
-        .then(() => {
-          return new Promise((resolve) => {
+        .then(() =>
+          new Promise((resolve) => {
             const pNub = PubNub.init({
               'subscribe_key': config.pubNub.subscribeKey,
               ssl: $location.protocol().indexOf('s') > -1,
               uuid: config.user.email
             });
 
-            $timeout(() => {
-              return resolve(pNub);
-            }, 1000);
-          });
-        })
+            $timeout(() => resolve(pNub), 1000);
+          })
+        )
         .then((pubNubInstance) => {
           pubNub = pubNubInstance;
 
@@ -59,8 +57,8 @@
             vm.subscribe = true;
           });
         })
-        .then(() => {
-          return new Promise(function(resolve) {
+        .then(() =>
+          new Promise(function(resolve) {
             pubNub.here_now({
               channel: channels.WAGERS,
               state: true,
@@ -72,8 +70,8 @@
             });
 
             vm.subscribe = true;
-          });
-        })
+          })
+        )
         .then((tracks) => {
           console.debug(`Tracks data loaded.`, tracks); // eslint-disable-line
 
@@ -169,13 +167,15 @@
     }
 
     function hasActiveWagers(track) {
-      if (!track || !track.races || !track.races.length || !track.nextRace || track.nextRace.Status.toLowerCase() === 'closed') {
+      if (!track || !track.races || !track.nextRace || (track.nextRace.Status.toLowerCase() === 'closed' && track.nextRace.RaceStatus.toLowerCase() !== 'off')) {
+        console.debug(`Track ${track.BrisCode} does not have active races/wagers`); // eslint-disable-line
+
         return false;
       }
 
       const currentRaceId = track.nextRace.RaceStatus.toLowerCase() === 'off' ? track.nextRace.RaceNum : track.nextRace.RaceNum - 1;
 
-      return !!track.races.find(function(r) {
+      return !!_(track.races).values().value().find(function(r) {
         return currentRaceId <= r.id;
       });
     }

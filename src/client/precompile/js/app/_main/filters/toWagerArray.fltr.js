@@ -9,9 +9,7 @@
   /* @ngInject */
   function toWagerArray() {
     return function(obj) {
-      return _(obj).values().filter((o) => {
-        return o && o.id;
-      }).value();
+      return _(obj).values().filter((o) => o && o.id).value();
     };
   }
 })();
