@@ -1,0 +1,28 @@
+.wps-details-container(data-ng-show='!!race.results.wps')
+  .wps-details-wrapper
+    h3(data-ng-bind='track.DisplayName + ": Race " + race.id + " Results"')
+    h5(data-ng-if='race.metadata', data-ng-bind='track.TrackType + " over " + race.metadata.Distance + " on " + race.metadata.SurfaceText')
+    table.width-100pct
+      thead
+        tr
+          th.wps-header.horse Horse
+          th.wps-header.odds.cursor-pointer(data-ng-click='decimal = !decimal') Odds
+          th.wps-header.ml.cursor-pointer(data-ng-click='decimal = !decimal') ML
+          th.wps-header.win Win
+          th.wps-header.place Place
+          th.wps-header.show Show
+      tbody
+        tr(data-ng-repeat='place in race.results.wps')
+          td
+            horse-number(horse='place.horse', track-type='track.TrackType')
+          td
+            horse-odds(horse='getHorseByProgramNumber(place.horse)', fractional='!decimal')
+          td
+            horse-morning-line(horse='getHorseByProgramNumber(place.horse)', fractional='!decimal')
+          td
+            .wps-detail-win(data-ng-bind='place.winAmount | currency:"$":2')
+          td
+            .wps-detail-place(data-ng-bind='place.placeAmount | currency:"$":2')
+          td
+            .wps-detail-show(data-ng-bind='place.showAmount | currency:"$":2')
+    exotics-table(exotics='race.results.exotics')

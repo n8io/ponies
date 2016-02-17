@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function horseNumber($timeout, ConfigService) {
+  function horseNumber(TemplateUrls, $timeout, ConfigService) {
     return {
       scope: {
         horse: '=',
@@ -15,11 +15,7 @@
       },
       restrict: 'E',
       replace: true,
-      template: `
-        <div class='horse-number-container cursor-pointer' data-ng-show='horse'>
-          <div class='horse-number' data-ng-bind='horse'></div>
-        </div>
-      `,
+      templateUrl: TemplateUrls.HORSE_NUMBER,
       link: linkFn
     };
 

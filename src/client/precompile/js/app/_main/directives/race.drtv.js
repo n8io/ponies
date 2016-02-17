@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function race() {
+  function race(TemplateUrls) {
     return {
       scope: {
         race: '=',
@@ -15,25 +15,7 @@
       },
       replace: true,
       restrict: 'E',
-      template: `
-        <div class='race-container'>
-          <div class='race-wrapper cursor-pointer'
-            data-ng-click='race.hide = onToggle(race) && !(race.hide === undefined ? race.softHide : race.hide)'
-            data-ng-class='{pulsate: track.nextRace.Mtp == 0 && track.nextRace.RaceStatus.toLowerCase() == "off"}'>
-            <div class='race-name float-left hide-xs' data-ng-bind='"Race " + race.id'>
-            </div>
-            <div class='race-name float-left hide-sm hide-md hide-lg hide-xl' data-ng-bind='"R" + race.id'>
-            </div>
-            <wps track='track' race='race' class='float-left'></wps>
-            <winning-wager-dots race='race' class='float-left'></winning-wager-dots>
-            <div class='race-toggle float-right'>
-              <i class='fa fa-angle-double-down' data-ng-if='!(race.hide === undefined ? race.softHide : race.hide)'></i>
-              <i class='fa fa-angle-double-up' data-ng-if='race.hide === undefined ? race.softHide : race.hide'></i>
-            </div>
-            <div class='clearfix'></div>
-          </div>
-        </div>
-      `,
+      templateUrl: TemplateUrls.RACE,
       controller: controller
     };
 

@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function gravatar(CryptoJs, UtilityService, d3) {
+  function gravatar(TemplateUrls, CryptoJs, UtilityService, d3) {
     return {
       restrict: 'E',
       scope: {
@@ -15,7 +15,7 @@
         letter: '='
       },
       replace: true,
-      template: '<img data-ng-src="//www.gravatar.com/avatar/{{emailHash}}?s={{size}}&r={{rating}}&d={{defaultImage}}" />',
+      templateUrl: TemplateUrls.GRAVATAR,
       link: linkFn
     };
 

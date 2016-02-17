@@ -1,0 +1,9 @@
+.track-container(data-ng-class='{collapsed: !track.races || (track.hide == undefined ? track.softHide: track.hide)}', data-ng-click='track.hide = onToggle(track) && !(track.hide === undefined ? track.softHide : track.hide)')
+  .track-wrapper(data-ng-class='{"cursor-pointer": track.races}')
+    .float-left.track-name(data-ng-bind='track.DisplayName', title='{{track.DisplayName}}')
+    .float-left.mtp-outer
+      mtp(mtp='track.nextRace')
+    .track-toggle.float-right(data-ng-if='track.races')
+      i.fa.fa-angle-double-down(data-ng-if='!(track.hide === undefined ? track.softHide : track.hide)')
+      i.fa.fa-angle-double-up(data-ng-if='track.hide === undefined ? track.softHide : track.hide')
+    .clearfix

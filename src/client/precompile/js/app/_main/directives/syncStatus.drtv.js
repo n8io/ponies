@@ -7,12 +7,12 @@
     ;
 
   /* @ngInject */
-  function syncStatus() {
+  function syncStatus(TemplateUrls) {
     return {
       scope: {
         status: '='
       },
-      template: `<div class='sync-status' data-ng-class='{ on: status, off: !status }' />`,
+      templateUrl: TemplateUrls.SYNC_STATUS,
       replace: true,
       restrict: 'E'
     };

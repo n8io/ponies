@@ -9,7 +9,7 @@
   /* @ngInject */
   function toArray() {
     return function(obj) {
-      return _(obj).values().filter((o) => o && o.nextRace).value();
+      return _(obj).values().value();
     };
   }
 })();

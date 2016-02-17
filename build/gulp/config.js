@@ -24,6 +24,7 @@ const now = moment();
 require('dotenv-safe').load();
 
 const cfg = {
+  localEnv: 'local',
   env: validEnvironments[process.env.NODE_ENV || ''] || validEnvironments.prod,
   clean: {
     src: [
@@ -84,15 +85,36 @@ const cfg = {
       formatStr: '/* Compiled via gulp-stylus on ${label} [ ${ms} ] */\n'
     }
   },
-  lint: {
-    css: {
-      src: [
-        path.join(srcDir, 'client/**/*.styl')
-      ]
-    }
-  },
   'git-info': {
     dest: cwd('.git.json')
+  },
+  html: {
+    src: [
+      cwd('src/client/precompile/html/**/*.jade'),
+      cwd('src/client/precompile/js/app/_main/directives/**/*.tmpl.jade')
+    ],
+    dest: cwd('dist/html/'),
+    min: {
+      options: {
+        quoteCharacter: '\'',
+        removeComments: true,
+        collapseWhitespace: true,
+        collapseBooleanAttributes: true,
+        removeTagWhitespace: true,
+        removeAttributeQuotes: true,
+        removeScriptTypeAttributes: true,
+        removeStyleLinkTypeAttributes: true,
+        caseSensitive: true
+      }
+    },
+    beautify: {
+      options: {
+        indentSize: 2,
+        maxPreserveNewlines: 2,
+        wrapLineLength: 0,
+        unformatted: ['pre']
+      }
+    }
   },
   js: {
     client: {
@@ -131,6 +153,13 @@ const cfg = {
         path.join(srcDir, 'server/**/*.js'),
         path.join(buildDir, '**/*.js'),
         path.join(testDir, '**/*.js')
+      ]
+    }
+  },
+  lint: {
+    css: {
+      src: [
+        path.join(srcDir, 'client/**/*.styl')
       ]
     }
   },

@@ -1,0 +1,5 @@
+.wwd-container(data-ng-class='{shown: race.hide === undefined ? race.softHide : race.hide}')
+  .wwd-wrapper
+    .wwd-dot(data-ng-repeat='wager in race.wagers | toWagerArray | raceWinningWagers')
+    .clearfix
+  .clearfix

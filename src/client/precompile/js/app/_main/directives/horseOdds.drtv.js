@@ -8,22 +8,13 @@
     ;
 
   /* @ngInject */
-  function horseOdds() {
+  function horseOdds(TemplateUrls) {
     return {
       scope: {
         horse: '=',
         fractional: '='
       },
-      template: `
-      <div class='horse-odds-container cursor-pointer' data-ng-click='fractional = !fractional'>
-        <div class='horse-odds-wrapper'>
-          <div class='horse-odds-actual'>
-            <span data-ng-if='!fractional' data-ng-bind='horse.odds.NumOdds'></span>
-            <span data-ng-if='fractional' data-ng-bind='horse.odds.TextOdds'></span>
-          </div>
-        </div>
-      </div>
-      `,
+      templateUrl: TemplateUrls.HORSE_ODDS,
       replace: true,
       restrict: 'E'
     };

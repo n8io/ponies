@@ -34,7 +34,7 @@
               uuid: config.user.email
             });
 
-            $timeout(() => resolve(pNub), 1000);
+            $timeout(() => resolve(pNub), 2000);
           })
         )
         .then((pubNubInstance) => {

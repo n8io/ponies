@@ -1,0 +1,11 @@
+.race-container
+  .race-wrapper.cursor-pointer(data-ng-click='race.hide = onToggle(race) && !(race.hide === undefined ? race.softHide : race.hide)',
+    data-ng-class='{pulsate: track.nextRace.Mtp == 0 && track.nextRace.RaceStatus.toLowerCase() == "off"}')
+    .race-name.float-left.hide-xs(data-ng-bind='"Race " + race.id')
+    .race-name.float-left.hide-sm.hide-md.hide-lg.hide-xl(data-ng-bind='"R" + race.id')
+    wps.float-left(track='track', race='race')
+    winning-wager-dots.float-left(race='race')
+    .race-toggle.float-right
+      i.fa.fa-angle-double-down(data-ng-if='!(race.hide === undefined ? race.softHide : race.hide)')
+      i.fa.fa-angle-double-up(data-ng-if='race.hide === undefined ? race.softHide : race.hide')
+    .clearfix

@@ -7,22 +7,14 @@
     ;
 
   /* @ngInject */
-  function exoticCombos() {
+  function exoticCombos(TemplateUrls) {
     return {
       scope: {
         exotic: '='
       },
       replace: true,
       restrict: 'E',
-      template: `
-        <div class='wps-detail-exotic-combos-container'>
-          <span class='wps-detail-exotic-combo'
-            data-ng-repeat='combo in exotic.winCombo'>
-              <span data-ng-bind='(!$first ? "/" : "") + combo'></span>
-            </span>
-          </span>
-        </div>
-      `
+      templateUrl: TemplateUrls.EXOTIC_COMBOS
     };
   }
 })();

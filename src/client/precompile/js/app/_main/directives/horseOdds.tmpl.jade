@@ -1,0 +1,5 @@
+.horse-odds-container.cursor-pointer(data-ng-click='fractional = !fractional')
+  .horse-odds-wrapper
+    .horse-odds-actual
+      span(data-ng-if='!fractional', data-ng-bind='horse.odds.NumOdds')
+      span(data-ng-if='fractional', data-ng-bind='horse.odds.TextOdds')

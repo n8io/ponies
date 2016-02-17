@@ -1,0 +1,5 @@
+.wager-timestamp-container.cursor-pointer(data-ng-click='wager.showActualTime = !wager.showActualTime')
+  .wager-timestamp-window(data-ng-show='!wager.showActualTime')
+    .wager-timestamp-ago.ts(value='{{wager.timestamp}}') {{wager.timestamp | ago}}
+    .wager-timestamp-value {{wager.timestamp | date:'mediumTime'}}
+  .wager-timestamp-id(data-ng-show='wager.showActualTime', data-ng-bind='"#" + wager.id')

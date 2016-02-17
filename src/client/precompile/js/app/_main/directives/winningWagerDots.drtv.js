@@ -7,23 +7,14 @@
     ;
 
   /* @ngInject */
-  function winningWagerDots() {
+  function winningWagerDots(TemplateUrls) {
     return {
       scope: {
         race: '='
       },
       replace: true,
       restrict: 'E',
-      template: `
-        <div class='wwd-container' data-ng-class='{shown: race.hide === undefined ? race.softHide : race.hide}'>
-          <div class='wwd-wrapper'>
-            <div class='wwd-dot' data-ng-repeat='wager in race.wagers | toWagerArray | raceWinningWagers'>
-            </div>
-            <div class='clearfix'></div>
-          </div>
-          <div class='clearfix'></div>
-        </div>
-      `
+      templateUrl: TemplateUrls.WINNING_WAGER_DOTS
     };
   }
 })();

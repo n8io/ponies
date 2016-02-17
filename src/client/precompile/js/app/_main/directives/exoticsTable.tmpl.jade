@@ -1,0 +1,18 @@
+table.wps-details-exotic.width-100pct
+  thead
+    tr
+      th.exotic-header.base Base Amt
+      th.exotic-header.type Type
+      th.exotic-header.combo Winning Combos
+      th.exotic-header.payout Payout
+  tbody
+    tr(data-ng-repeat='exotic in exotics | toArray')
+      td
+        .wps-detail-exotic-denomination(data-ng-bind='exotic.denomination | currency:"$":2')
+      td
+        .wps-detail-exotic-type(data-ng-if='exotic.type != "Pick-"', data-ng-bind='exotic.type')
+        .wps-detail-exotic-type(data-ng-if='exotic.type == "Pick-"', data-ng-bind='exotic.type + exotic.winCombo.length')
+      td
+        exotic-combos(exotic='exotic')
+      td
+        .wps-detail-exotic-win-amount(data-ng-bind='exotic.winAmount | currency:"$":2')

@@ -1,0 +1,5 @@
+.horse-odds-container.cursor-pointer(data-ng-click='fractional = !fractional')
+  .horse-odds-wrapper
+    .horse-odds-morning-line
+      span(data-ng-if='!fractional', data-ng-bind='horse.ML | fractionalToDecimal')
+      span(data-ng-if='fractional', data-ng-bind='horse.ML')

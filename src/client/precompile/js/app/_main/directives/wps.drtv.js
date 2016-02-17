@@ -7,7 +7,7 @@
     ;
 
   /* @ngInject */
-  function wps($mdBottomSheet) {
+  function wps($mdBottomSheet, TemplateUrls) {
     return {
       scope: {
         race: '=',
@@ -15,17 +15,7 @@
       },
       replace: true,
       restrict: 'E',
-      template: `
-        <div class='wps-container'
-          data-ng-show='!!race.results.wps'
-          data-ng-click='onWpsClick($event)'
-          >
-          <div class='wps-wrapper'>
-            <span data-ng-bind='race.results.wps | wpsSelections'>
-            </span>
-          </div>
-        </div>
-      `,
+      templateUrl: TemplateUrls.WPS,
       controller: controller
     };
 
@@ -38,11 +28,7 @@
         ev.stopPropagation();
 
         $mdBottomSheet.show({
-          template: `
-          <md-bottom-sheet>
-            <wps-details track='$parent.track' race='$parent.race'></wps-details>
-          </md-bottom-sheet>
-          `,
+          templateUrl: TemplateUrls.WPS_BOTTOM_SHEET,
           scope: $scope.$new(true)
         });
       }
