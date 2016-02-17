@@ -28,7 +28,7 @@
       const vm = $scope; // eslint-disable-line
 
       ConfigService
-        .getConfig()
+        .get()
         .then(function(config) {
           if (!vm.horse || !vm.trackType || !config) {
             return;

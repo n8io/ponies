@@ -3,18 +3,18 @@
 
   angular
     .module('app.services')
-    .factory('ConfigService', ConfigService)
+    .factory('ConfigService', configService)
     ;
 
   /* @ngInject */
-  function ConfigService($http) {
+  function configService($http) {
     let config;
 
     return {
-      getConfig: getConfig
+      get: get
     };
 
-    function getConfig() {
+    function get() {
       return new Promise(function(resolve) {
         if (config) {
           return resolve(config);

@@ -16,15 +16,15 @@
       restrict: 'E',
       template: `
         <div class='track-container'
-          data-ng-class='{collapsed: !track.races || track.races.length == 0 || (track.hide == undefined ? track.softHide: track.hide)}'
+          data-ng-class='{collapsed: !track.races || (track.hide == undefined ? track.softHide: track.hide)}'
           data-ng-click='track.hide = onToggle(track) && !(track.hide === undefined ? track.softHide : track.hide)'>
-          <div class='track-wrapper' data-ng-class='{"cursor-pointer": track.races.length > 0}'>
+          <div class='track-wrapper' data-ng-class='{"cursor-pointer": track.races}'>
             <div class='float-left track-name' data-ng-bind='track.DisplayName' title='{{track.DisplayName}}'>
             </div>
             <div class='float-left mtp-outer'>
               <mtp mtp='track.nextRace' />
             </div>
-            <div class='track-toggle float-right' data-ng-if='track.races.length > 0'>
+            <div class='track-toggle float-right' data-ng-if='track.races'>
               <i class='fa fa-angle-double-down' data-ng-if='!(track.hide === undefined ? track.softHide : track.hide)'></i>
               <i class='fa fa-angle-double-up' data-ng-if='track.hide === undefined ? track.softHide : track.hide'></i>
             </div>
@@ -38,6 +38,18 @@
     /* @ngInject */
     function controller($scope, $timeout) {
       $scope.onToggle = onToggle;
+
+      if ($scope.track.nextRace.Status.toLowerCase() === 'closed') {
+        $scope.track.softHide = true;
+      }
+
+      const hasActiveRaces = !!_($scope.track.races).values().value().find((r) =>
+        r.id >= $scope.track.nextRace.RaceNum + ($scope.track.nextRace.RaceStatus.toLowerCase() !== 'off' ? -1 : 0)
+      );
+
+      if (!hasActiveRaces) {
+        $scope.track.softHide = true;
+      }
 
       function onToggle(track) {
         if (track.hideTO) {

@@ -16,10 +16,10 @@
       replace: true,
       restrict: 'E',
       template: `
-        <div class='wps-details-container' data-ng-show='!!race.wps'>
+        <div class='wps-details-container' data-ng-show='!!race.results.wps'>
           <div class='wps-details-wrapper'>
             <h3 data-ng-bind='track.DisplayName + ": Race " + race.id + " Results"'></h3>
-            <h5 data-ng-if='race.metadata'>{{track.nextRace.TrackType}} over {{race.metadata.Distance}} on {{race.metadata.SurfaceText}}</h5>
+            <h5 data-ng-if='race.metadata'>{{track.TrackType}} over {{race.metadata.Distance}} on {{race.metadata.SurfaceText}}</h5>
             <table class='width-100pct'>
               <thead>
                 <tr>
@@ -32,9 +32,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr data-ng-repeat='place in race.wps'>
+                <tr data-ng-repeat='place in race.results.wps'>
                   <td>
-                    <horse-number horse='place.horse' track-type='track.nextRace.TrackType' />
+                    <horse-number horse='place.horse' track-type='track.TrackType' />
                   </td>
                   <td>
                     <horse-odds horse='getHorseByProgramNumber(place.horse)' fractional='!decimal' />
@@ -54,7 +54,7 @@
                 </tr>
               </tbody>
             </table>
-            <exotics-table exotics='race.exotics'></exotics-table>
+            <exotics-table exotics='race.results.exotics'></exotics-table>
           </div>
         </div>
       `,
@@ -64,7 +64,7 @@
     /* @ngInject */
     function controllerFn($scope) {
       $scope.getHorseByProgramNumber = function(programNumber) {
-        return $scope.race.horses.find(function(h) {
+        return _($scope.race.horses).values().value().find(function(h) {
           return h.ProgramNumber === programNumber;
         });
       };
