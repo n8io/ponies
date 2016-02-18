@@ -11,7 +11,7 @@ module.exports = function(gulp, plugins, cfg) {
       .pipe(plugins.if(
           cfg.env === localEnv, // Using proper config based on env
           plugins.stylus(cfg.css.options.local),
-          plugins.stylus(cfg.css.options.local)
+          plugins.stylus(cfg.css.options.other)
       ))
       .pipe(plugins.header(cfg.css.banner.formatStr, cfg.start)) // Add timestamp to banner
       .pipe(plugins.rename(cfg.css.dest.file))
