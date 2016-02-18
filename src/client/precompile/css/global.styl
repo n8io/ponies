@@ -230,6 +230,7 @@ td.wager
   position relative
   text-align right
   white-space nowrap
+  user-select none
   .wager-timestamp-window
     position relative
     transition all 500ms ease-out
@@ -355,7 +356,6 @@ a.bookmarklet
   .wager-wrapper
     padding 5px 8px 5px 20px
     border 1px solid transparent
-    margin-left 5px
     &:hover
     &:active
     &:focus
@@ -413,8 +413,30 @@ a.bookmarklet
     .wager-selections
       border 1px solid transparent
       font-size 80%
+      line-height 14px
       border-radius 3px
       padding 2px 3px
+    .wager-payout
+      font-size 100%
+      user-select none
+      &.winner
+        display inline
+        padding 2px 3px
+        background-color green
+        color #fff
+        border-radius 3px
+        line-height 16px
+        font-size 90%
+    .wager-type
+      user-select none
+
+    img
+    [class^="wager-"]
+      float left
+      margin-left 5px
+    [class^='wager-timestamp']
+      float none
+      margin-left 0
   &:hover
   &:focus
   &:active
@@ -422,6 +444,7 @@ a.bookmarklet
       margin-top -18px
 
 .mtp-container
+  user-select none
   padding 1px 3px 1px 5px
   border-radius 5px
   font-size 65%
@@ -490,6 +513,7 @@ a.bookmarklet
     transition border 200ms ease
     border-radius 3px 3px 0 0
     .track-name
+      user-select none
       padding 5px 10px
       color #fff
       background-color #555
@@ -532,6 +556,7 @@ td.race-cell
         height 20px
         width 50px
 .wps-container
+  user-select none
   padding 2px 5px 3px
   font-size 80%
   background #eee
@@ -542,14 +567,6 @@ td.race-cell
   color #555
   &:hover
     text-decoration underline
-.wager-payout
-  font-size 90%
-  &.winner
-    display inline
-    padding 2px 5px
-    background-color green
-    color #fff
-    border-radius 3px
 .wwd-container
   float left
   &.shown
@@ -569,7 +586,6 @@ td.race-cell
       border-radius 5px
       margin 6px 0 0 5px
 .wps-detail-exotic-combo
-  margin-right -5px
   padding 0
 .wps-detail-exotic-win-amount
   text-align right

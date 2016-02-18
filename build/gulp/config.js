@@ -98,10 +98,7 @@ const cfg = {
       options: {
         quoteCharacter: '\'',
         removeComments: true,
-        collapseWhitespace: true,
         collapseBooleanAttributes: true,
-        removeTagWhitespace: true,
-        removeAttributeQuotes: true,
         removeScriptTypeAttributes: true,
         removeStyleLinkTypeAttributes: true,
         caseSensitive: true
