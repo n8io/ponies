@@ -24,7 +24,7 @@
       $scope.letter = $scope.letter || '';
       $scope.size = parseInt(attrs.size, 0) || 80;
       $scope.class = `gravatar-${$scope.size}`;
-      $scope.defaultImage = attrs.default || 'mm';
+      $scope.defaultImage = attrs.default || 'identicon';
       $scope.forceDefault = angular.isDefined(attrs.force);
       $scope.rating = attrs.rating || 'G';
       $scope.round = angular.isDefined(attrs.round);
