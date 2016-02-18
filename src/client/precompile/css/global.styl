@@ -271,18 +271,24 @@ a.bookmarklet
     border-radius 5px
     .presence
       float right
-      margin-right 8px
       border-radius 5px
       position relative
       transition left 1s ease-in
       img
         opacity .2
         transition all 500ms ease
+        width 10px
+        border-radius 0
+        box-shadow none
+        border 1px solid #555
       &.syncing
         left 0
         img
+          border 1px solid #DDD
           opacity 1
+          width 50px
           border-radius 5px 3px 5px 5px
+          box-shadow 1px 1px 3px #ddd
 .i-m-syncing
   position fixed
   bottom 0
