@@ -1,23 +1,22 @@
 module.exports = function(gulp, plugins, cfg) {
-  const localEnv = 'local';
-
   gulp.task('js', js);
 
   function js() {
     return gulp.src(cfg.js.client.src)
-      .pipe(plugins.concat(cfg.js.client.filenameDebug)) // Concatenate all files
-      .pipe(plugins.babel())
-      .pipe(plugins.ngAnnotate(cfg.js.client.ngAnnotate))
-      .pipe(plugins.jsbeautifier(cfg.js.client.jsbeautifier))
+      .pipe(plugins.iife({prependSemicolon: false})) // Wrap each file content in an IIFE
+      .pipe(plugins.concat(cfg.js.client.filenameDebug)) // Concatenate all files to the unmin'd file name
+      .pipe(plugins.babel()) // Transpile down to ES5
+      .pipe(plugins.ngAnnotate(cfg.js.client.ngAnnotate)) // Add fn.$inject = ... dependencies to stay min safe
+      .pipe(plugins.jsbeautifier(cfg.js.client.jsbeautifier)) // Put it in a consistent format
       .pipe(plugins.header(cfg.js.client.banner.formatStr, cfg.start)) // Add timestamp to banner
-      .pipe(gulp.dest(cfg.js.client.dest))
-      .pipe(plugins.stripDebug())
-      .pipe(plugins.uglify(cfg.js.client.uglify))
+      .pipe(gulp.dest(cfg.js.client.dest)) // Write it to the dest dir
+      .pipe(plugins.stripDebug()) // Rip out console statements
+      .pipe(plugins.uglify(cfg.js.client.uglify)) // Mangle and min it all
       .pipe(plugins.header(cfg.js.client.banner.formatStr, cfg.start)) // Add timestamp to banner
-      .pipe(plugins.concat(cfg.js.client.filename)) // Concatenate all files
-      .pipe(gulp.dest(cfg.js.client.dest))
-      .pipe(plugins.if(
-        cfg.env === localEnv,
+      .pipe(plugins.concat(cfg.js.client.filename)) // Concatenate all files to the min'd file name
+      .pipe(gulp.dest(cfg.js.client.dest)) // Write it to the dest dir
+      .pipe(plugins.if( // Make files for livereload if in local env
+        cfg.env === cfg.localEnv,
         plugins.livereload()
       ))
       ;

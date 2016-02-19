@@ -1,9 +1,14 @@
-(function() {
-  'use strict';
+const baseUri = `/html`;
+const ext = `.tmpl.html`;
+const templateUrls = getTemplateUrls();
 
-  const baseUri = `/html`;
-  const ext = `.tmpl.html`;
-  const templateUrls = {
+angular
+  .module('app.constants')
+  .constant('TemplateUrls', templateUrls)
+  ;
+
+function getTemplateUrls() {
+  return {
     EXOTIC_COMBOS: `${baseUri}/exoticCombos${ext}`,
     EXOTICS_TABLE: `${baseUri}/exoticsTable${ext}`,
     GRAVATAR: `${baseUri}/gravatar${ext}`,
@@ -23,9 +28,4 @@
     WPS_BOTTOM_SHEET: `${baseUri}/wpsBottomSheet${ext}`,
     WPS_DETAILS: `${baseUri}/wpsDetails${ext}`
   };
-
-  angular
-    .module('app.constants')
-    .constant('TemplateUrls', templateUrls)
-    ;
-})();
+}

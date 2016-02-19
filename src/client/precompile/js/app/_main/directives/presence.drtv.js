@@ -1,21 +1,17 @@
-(function() {
-  'use strict';
+angular
+  .module('app.directives')
+  .directive('presence', presence)
+  ;
 
-  angular
-    .module('app.directives')
-    .directive('presence', presence)
-    ;
-
-  /* @ngInject */
-  function presence(TemplateUrls) {
-    return {
-      scope: {
-        presences: '=',
-        me: '=myPresence'
-      },
-      templateUrl: TemplateUrls.PRESENCE,
-      replace: true,
-      restrict: 'E'
-    };
-  }
-})();
+/* @ngInject */
+function presence(TemplateUrls) {
+  return {
+    scope: {
+      presences: '=',
+      me: '=myPresence'
+    },
+    templateUrl: TemplateUrls.PRESENCE,
+    replace: true,
+    restrict: 'E'
+  };
+}

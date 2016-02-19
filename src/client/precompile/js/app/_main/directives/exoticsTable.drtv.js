@@ -1,20 +1,16 @@
-(function() {
-  'use strict';
+angular
+  .module('app.directives')
+  .directive('exoticsTable', exoticsTable)
+  ;
 
-  angular
-    .module('app.directives')
-    .directive('exoticsTable', exoticsTable)
-    ;
-
-  /* @ngInject */
-  function exoticsTable(TemplateUrls) {
-    return {
-      scope: {
-        exotics: '='
-      },
-      replace: true,
-      restrict: 'E',
-      templateUrl: TemplateUrls.EXOTICS_TABLE
-    };
-  }
-})();
+/* @ngInject */
+function exoticsTable(TemplateUrls) {
+  return {
+    scope: {
+      exotics: '='
+    },
+    replace: true,
+    restrict: 'E',
+    templateUrl: TemplateUrls.EXOTICS_TABLE
+  };
+}

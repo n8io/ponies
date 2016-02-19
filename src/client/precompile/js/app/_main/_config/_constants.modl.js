@@ -1,7 +1,3 @@
-(function() {
-  'use strict';
-
-  angular
-    .module('app.constants', [])
-    ;
-})();
+angular
+  .module('app.constants', [])
+  ;

@@ -944,6 +944,4 @@
       firstName: data.firstName,
       lastName: data.lastName,
       isSyncing: data.isSyncing
-    };
-  }
-})();
+    };  }

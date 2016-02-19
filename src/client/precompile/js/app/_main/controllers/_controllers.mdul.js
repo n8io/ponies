@@ -1,9 +1,5 @@
-(function() {
-  'use strict';
-
-  angular
-    .module('app.controllers', [
-      'firebase' // https://www.firebase.com/docs/web/libraries/angular
-    ])
-    ;
-})();
+angular
+  .module('app.controllers', [
+    'firebase' // https://www.firebase.com/docs/web/libraries/angular
+  ])
+  ;

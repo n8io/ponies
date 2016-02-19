@@ -1,15 +1,11 @@
-(function() {
-  'use strict';
+angular
+  .module('app.services')
+  .factory('toastr', toastrService)
+  ;
 
-  angular
-    .module('app.services')
-    .factory('toastr', toastrService)
-    ;
+/* @ngInject */
+function toastrService() {
+  toastr.options.positionClass = 'toast-bottom-left'; // eslint-disable-line
 
-  /* @ngInject */
-  function toastrService() {
-    toastr.options.positionClass = 'toast-bottom-left'; // eslint-disable-line
-
-    return toastr; // eslint-disable-line
-  }
-})();
+  return toastr;
+}
