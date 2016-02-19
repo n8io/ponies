@@ -1,7 +1,6 @@
 const fs = require('fs');
-const path = require('path');
+const cwd = require('cwd');
 const _ = require('lodash');
-const projRoot = process.env.PWD;
 const routesRelativeDir = 'src/server/routes';
 
 module.exports = function(app, auth) {
@@ -21,7 +20,7 @@ module.exports = function(app, auth) {
       return; // We don't want to require index.js's
     }
 
-    const filePath  = path.join(__dirname, file.split('.js').join(''));
+    const filePath  = cwd(__dirname, file.split('.js').join(''));
 
     // If route isn't in the list already, lets add it to the list
     if (routes.indexOf(filePath) === -1) {
@@ -36,5 +35,5 @@ module.exports = function(app, auth) {
 };
 
 function getRouteAbsolutePath(relativeToRoutesDirPath) {
-  return path.join(projRoot, routesRelativeDir, relativeToRoutesDirPath);
+  return cwd(routesRelativeDir, relativeToRoutesDirPath);
 }

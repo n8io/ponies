@@ -4,7 +4,7 @@ module.exports = function(gulp, plugins, cfg) { // eslint-disable-line no-unused
   gulp.task('dropbox', ['twinspires'], dropbox);
 
   function dropbox() {
-    shell.exec('cp ./dist/js/twinspires.js ~/Dropbox/Public/hosted/ponies/twinspires.js', {silent: true});
+    shell.exec('npm run dropbox', {silent: true});
 
     return;
   }

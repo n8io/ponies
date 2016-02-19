@@ -1,10 +1,9 @@
 'use strict';
 
-const path = require('path');
+const cwd = require('cwd');
 const fs = require('fs');
-const projRoot = process.env.PWD;
-const packageJson = require(path.join(projRoot, 'package.json'));
-const readMeFilePath = path.join(projRoot, 'README.md');
+const packageJson = require(cwd('package.json'));
+const readMeFilePath = cwd('README.md');
 
 writeReadMe(packageJson.engines.node);
 

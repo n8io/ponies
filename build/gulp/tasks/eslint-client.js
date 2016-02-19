@@ -1,11 +1,10 @@
-const path = require('path');
-const projRoot = process.env.PWD;
+const cwd = require('cwd');
 
 module.exports = function(gulp, plugins, cfg) {
   gulp.task('eslint-client', eslintClient);
 
   function eslintClient() {
-    const customGulpFormatter = require(path.join(projRoot, 'build/eslint/customGulpFormatter'));
+    const customGulpFormatter = require(cwd('build/eslint/customGulpFormatter'));
     const src = cfg.js.client.src.map(function(s) {
       return `${s}`;
     });

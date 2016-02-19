@@ -97,10 +97,6 @@ module.exports = function(bcPath, projRoot) {
     files = files.concat(tFiles);
   });
 
-  // files = _.map(_.uniq(files), function(f) {
-  //   return _.trimLeft(path.relative(__dirname, f), `${offsetDir}/`);
-  // });
-
   debug(`Found file list length: ${files.length}`);
 
   return files;

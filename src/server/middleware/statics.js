@@ -1,7 +1,6 @@
-const path = require('path');
-const projRoot = process.env.PWD;
+const cwd = require('cwd');
 const serveStatic = require('serve-static');
 
 module.exports = function(app) {
-  app.use(serveStatic(path.join(projRoot, 'dist')));
+  app.use(serveStatic(cwd('dist')));
 };

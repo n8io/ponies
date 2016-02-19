@@ -1,7 +1,6 @@
-const path = require('path');
-const projRoot = process.env.PWD;
+const cwd = require('cwd');
 
 module.exports = function(app) {
-  app.set('views', path.join(projRoot, 'src/server/views'));
+  app.set('views', cwd('src/server/views'));
   app.set('view engine', 'jade');
 };

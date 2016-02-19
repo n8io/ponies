@@ -2,6 +2,7 @@ const fs = require('fs');
 const request = require('request');
 const semver = require('semver');
 const cwd = require('cwd');
+const chalk = require('chalk');
 const packageJson = require(cwd('package.json'));
 const destPath = cwd('.nvmrc');
 const reqOpts = {
@@ -17,5 +18,13 @@ request.get(reqOpts, function(err, res) {
 });
 
 function writeRc(nodeVersion) {
-  fs.writeFileSync(destPath, nodeVersion);
+  fs.writeFile(destPath, nodeVersion, (err) => {
+    if (err) {
+      console.log(chalk.red(`Failed to write .nvmrc ${err}`)); // eslint-disable-line
+
+      return;
+    }
+
+    console.log(chalk.green(`.nvmrc file updated`)); // eslint-disable-line
+  });
 }
