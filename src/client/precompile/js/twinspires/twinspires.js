@@ -461,9 +461,13 @@
           })
           .then(() => {
             // Update horse odds
-            const oddsPromises = r.horses.map((h) =>
-              trackDayRef.child(t.BrisCode).child(`races/${padLeft(r.id, 3)}/horses/${padLeft(h.id, 3)}/odds`).update(h.odds)
-            );
+            const oddsPromises = r.horses.map((h) => {
+              if (!h.odds) {
+                return new Promise((resolve) => resolve());
+              }
+
+              return trackDayRef.child(t.BrisCode).child(`races/${padLeft(r.id, 3)}/horses/${padLeft(h.id, 3)}/odds`).update(h.odds);
+            });
 
             return Promise.all(oddsPromises);
           })
@@ -580,7 +584,7 @@
 
         race.horses = race.horses.map(function(h) {
           const foundOdds = data.WinOdds.Entries.find(function(odds) {
-            return h.ProgramNumber === odds.ProgramNumber;
+            return h.ProgramNumber === odds.ProgramNumber || h.ProgramNumber.replace('A', '') === odds.ProgramNumber;
           });
 
           if (!foundOdds) {
