@@ -579,9 +579,15 @@
         console.debug(`...returned ${track.BrisCode} track odds info.`, data.WinOdds.Entries); // eslint-disable-line
 
         race.horses = race.horses.map(function(h) {
-          h.odds = data.WinOdds.Entries.find(function(odds) {
+          const foundOdds = data.WinOdds.Entries.find(function(odds) {
             return h.ProgramNumber === odds.ProgramNumber;
           });
+
+          if (!foundOdds) {
+            return h;
+          }
+
+          h.odds = foundOdds;
 
           h.odds = _.omit(h.odds, 'ProgramNumber');
 
