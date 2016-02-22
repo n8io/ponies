@@ -2,7 +2,7 @@ const app = require('express')();
 const server = require('http').Server(app);
 const stormpath = require('express-stormpath');
 
-require('dotenv-safe').load();
+require('dotenv-safe').load({silent: true});
 
 const logger = require('./helpers/logger')();
 
